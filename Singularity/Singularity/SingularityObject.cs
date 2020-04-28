@@ -35,7 +35,7 @@ namespace Singularity
 
 		public void Init(ConfigNode _cn)
 		{
-			Utils.LogDebug ("Initializing object from config: " + _cn.ToString ());
+			Utils.LogDebug ("Initializing object from config:\r\n" + _cn.ToString ());
 
 			ConfigNode.LoadObjectFromConfig (this, _cn);
 
@@ -72,9 +72,7 @@ namespace Singularity
 
 			GameObject.Destroy (singularityGO.GetComponent<Collider> ());			
 			//singularityGO.transform.localScale = Vector3.one; //I think I can just control the scale from here, instead of  messing with the mesh like in scatterer
-			singularityGO.transform.localScale = new Vector3 (radius * 10f, scaledRadius * 10f, scaledRadius * 10f); //doesn't appear to work
-			Utils.LogInfo ("Radius " + radius.ToString ());
-			Utils.LogInfo ("Scaled Radius " + scaledRadius.ToString ());
+			singularityGO.transform.localScale = new Vector3 (scaledRadius * 10f, scaledRadius * 10f, scaledRadius * 10f); //objects come out waaay smaller than expected, localScale might have sth to do with it?
 			
 			MeshRenderer singularityMR = singularityGO.GetComponent<MeshRenderer>();
 			singularityMR.material = singularityMaterial;
