@@ -30,7 +30,10 @@
             #define ID_BLACKHOLE 0
 			#define ID_BLACKHOLE_DISK 1
 
-			//uniform float4 blackhole;
+			#define INFINITY 1000000.0
+			#define lightSpeed 0.2 // Not actually representing light speed :P
+			#define TWOPI 6.28318530718
+
 			uniform float blackHoleRadius;
 			uniform float gravity;
 
@@ -68,25 +71,20 @@
 			{
 
 #if defined (RADIAL_DISK_MAPPING_ON)
-
 				//TODO: make this rotate, move TWOPI to defines
+				pos = pos - blackHoleOrigin;
+				float dist = length(pos);
 
-			  float TWOPI = 6.28318530718;
-			  pos = pos - blackHoleOrigin;
-			  float dist = length(pos);
+				// Important! Scale radii according to black hole
+				float v = clamp((dist - diskInnerRadius) / (diskOuterRadius - diskInnerRadius), 0.0, 1.0);
 
-			  // Important! Scale radii according to black hole
-			  float v = clamp((dist - diskInnerRadius) / (diskOuterRadius - diskInnerRadius), 0.0, 1.0);
+//			    float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
+				float angle = acos(dot(normalize(base1), normalize(pos)));
+				if (dot(cross(base1, pos), diskNormal) < 0.0) angle = -angle;
 
-//			  float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
-			  float angle = acos(dot(normalize(base1), normalize(pos)));
-			  if (dot(cross(base1, pos), diskNormal) < 0.0) angle = -angle;
+				float u = 0.5 - angle / TWOPI;
 
-			  float u = 0.5 - angle / TWOPI;
-
-			  float3 color = tex2Dlod(AccretionDisk, float4(u, v,0.0,0.0)).rgb;
-
-			  return color;
+				float4 color = tex2Dlod(AccretionDisk, float4(u, v,0.0,0.0));
 #else
 				float u = dot (base1,normalize(pos)) * (length(pos)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
 				float v = dot (base2,normalize(pos)) * (length(pos)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
@@ -104,23 +102,23 @@
 				UV = clamp (UV,0.0,1.0);
 
 				float4 color = tex2Dlod(AccretionDisk, float4(UV,0.0,0.0));
-
-				return color.rgb*color.a;
 #endif
+				return color.rgb*color.a;
 			}
 
-			float sphereDistance(float3 rayPosition, float3 rayDirection, float4 sphere)
+			inline float sphereDistance(float3 rayPosition, float3 rayDirection, float4 sphere)
 			{
-			  float3 v;
-			  float p, d;
-			  v = rayPosition - sphere.xyz;
-			  p = dot(rayDirection, v);
-			  d = p * p + sphere.w * sphere.w - dot(v, v);
+				float3 v;
+				float p, d;
+				v = rayPosition - sphere.xyz;
+				p = dot(rayDirection, v);
+				d = p * p + sphere.w * sphere.w - dot(v, v);
 
-			  return d < 0.0 ? -1.0 : -p - sqrt(d);
+				//return d < 0.0 ? -1.0 : -p - sqrt(d);
+				return d < 0.0 ? INFINITY : -p - sqrt(d);
 			}
 
-			//simplify this also
+			//simplify this?
 			void testDistance(int i, float distance, inout float currentDistance, inout int currentObject, float maxDistance)
 			{
 			  float EPSILON = 0.0001;
@@ -132,8 +130,15 @@
 			  }
 			}
 
-			//simplify this
-			float ringDistance(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
+			// inigo quilez plane intersect, saves like 15% performance on the whole shader
+			// plane designed by p (p.xyz must be normalized)
+			float plaIntersect( float3 ro, float3 rd, float3 p )
+			{
+    			return -(dot(ro,p))/dot(rd,p);
+			}
+
+			//original ringIntersect function, overly complicated and slow
+			inline float ringDistance(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
 			{
 			  float EPSILON = 0.0001;
 
@@ -159,42 +164,8 @@
 			  }
 			}
 
-//			float LinePlaneIntersection(float3 rayPosition, float3 rayDirection)
-//			{
-//				float tlength;
-//				float dotNumerator;
-//				float dotDenominator;
-//					
-//				float3 intersectVector;
-//				float3 intersection = 0.0;
-//
-//				//calculate the distance between the linePoint and the line-plane intersection point
-//				dotNumerator = dot((blackHoleOrigin - rayPosition), diskNormal);
-//				dotDenominator = dot(rayDirection, diskNormal);
-//
-//				//line and plane are not parallel
-//				if(dotDenominator != 0.0f)
-//				{
-//					tlength =  dotNumerator / dotDenominator;
-//			  		intersection= (tlength > 0.0) ? rayPosition + rayDirection * tlength : rayPosition;
-//			  		float distanceToCenter = length(intersection - blackHoleOrigin);
-//
-//			  		return (tlength > 0.0 && distanceToCenter >= diskInnerRadius && distanceToCenter <= diskOuterRadius) ? tlength : -1.0; //or -1?
-//				}
-//				else
-//				{
-//					return -1.0;
-//				}
-//
-//				//return intersection;
-//			}
-
 			float3 raytrace(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
-			{
-				float lightSpeed = 0.2; // Not actually representing light speed :P
-
-				float INFINITY = 1000000.0;
-					
+			{				
 				float currentDistance = INFINITY;
 				int   currentObject = -1;
 				float3  hitPosition;
@@ -210,13 +181,10 @@
 #if defined (ACCRETION_DISK_ON)
 				//acretion disk base vectors
 				float3 base1 = normalize(cross(diskNormal, diskNormal.zxy)); //move this to plugin precomputation, check if 2nd vector is equal to first and re-change it
-				float3 base2 = normalize(cross(base1, diskNormal)); 		 //move this to precomputation
+				float3 base2 = normalize(cross(base1, diskNormal)); 		 //move this to precomputation?
 #endif
 
-				float blackHoleHit = 0.0;
-
 				for (int i = 0; i < 35; i++)
-				//for (int i = 0; i < 70; i++)
 				{
 					currentObject = -1;
 			  		currentDistance = INFINITY;
@@ -232,14 +200,14 @@
 
 			  		//rayDirection=normalize(rayDirection * lightSpeed + rayAccel * stepSize);
 			  		rayDirection=normalize(rayDirection * lightSpeed * stepSize + rayAccel * stepSize);
-					 	
+
+			  		//the intersect and testDistance functions are what takes the most time in this loop, however I don't think they can be simplified any further
 			  		objectDistance = sphereDistance(rayPosition, rayDirection, float4(blackHoleOrigin, blackHoleRadius * 1.0));
 			  		testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject, lightSpeed*stepSize);
 
 #if defined (ACCRETION_DISK_ON)
-			  		objectDistance = ringDistance(rayPosition, rayDirection, blackHoleOrigin);
-			  		//objectDistance = LinePlaneIntersection(rayPosition, rayDirection);
-
+			  		//objectDistance = ringDistance(rayPosition, rayDirection, blackHoleOrigin);
+			  		objectDistance = plaIntersect(rayPosition.xyz-blackHoleOrigin.xyz, rayDirection, diskNormal);
 			  		testDistance(ID_BLACKHOLE_DISK, objectDistance, currentDistance, currentObject, lightSpeed*stepSize);
 #endif
 			  		// Check if we hit any object, and if so, stop integrating
@@ -263,6 +231,13 @@
 
 					//move forward
 					rayPosition += lightSpeed * stepSize * rayDirection;
+
+//					 //if we are out of the gravity pull, and the ray is going away from the black hole, just stop
+//					 //useless optimization, doesn't net any added performance
+//					if ( (rayDistance < 1.0) && (dot(rayDirection, gravityVector) < 0.0 ) )
+//					{
+//						break;
+//					}
 				}
 
 				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius )
@@ -282,7 +257,6 @@
             	float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
 
   				float3 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
-
   				return float4(color, 1.0);
             }
             ENDCG
