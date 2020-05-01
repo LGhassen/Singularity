@@ -3,11 +3,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text;
+using System.Reflection;
 
 namespace Singularity
 {
 	public static class Utils
 	{
+		public static BindingFlags reflectionFlags =  BindingFlags.FlattenHierarchy |  BindingFlags.NonPublic | BindingFlags.Public | 
+			BindingFlags.Instance | BindingFlags.Static;
+
 		public static void LogDebug(string log)
 		{
 			Debug.Log ("[Singularity][Debug] " + log);

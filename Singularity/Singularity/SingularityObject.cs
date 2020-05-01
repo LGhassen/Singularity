@@ -28,6 +28,8 @@ namespace Singularity
 
 		MeshRenderer scaledPlanetMeshRenderer;
 
+		GameObject singularityGO;
+
 		public SingularityObject ()
 		{
 
@@ -42,9 +44,8 @@ namespace Singularity
 			singularityMaterial = new Material(Singularity.LoadedShaders ["Singularity/BlackHoleAccretionDisk"]);
 
 			scaledRadius = radius / 6000f;
-
-			//this one probably can get it directly in the shader itself instead of setting it every time
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
+
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 3005;
 
@@ -53,42 +54,19 @@ namespace Singularity
 				ConfigureAccretionDisk ();
 			}
 
-			//arrived here but don't see any object created or Mun hidden, gotta debug the scaledTransform thing
 			if (hideCelestialBody)
 			{
-				scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer>();
-				if (!ReferenceEquals(scaledPlanetMeshRenderer,null))
-				{
-					scaledPlanetMeshRenderer.enabled = false;
-				}
+				HideCelestialBody ();
 			}
 
-			GameObject singularityGO = GameObject.CreatePrimitive (PrimitiveType.Sphere);
-			singularityGO.name = name + " singularity";
-			singularityGO.layer = 10;
-
-			singularityGO.transform.position = gameObject.transform.position;
-			singularityGO.transform.parent = gameObject.transform;
-
-			GameObject.Destroy (singularityGO.GetComponent<Collider> ());			
-			//singularityGO.transform.localScale = Vector3.one; //I think I can just control the scale from here, instead of  messing with the mesh like in scatterer
-			singularityGO.transform.localScale = new Vector3 (scaledRadius * 10f, scaledRadius * 10f, scaledRadius * 10f); //objects come out waaay smaller than expected, localScale might have sth to do with it?
-			
-			MeshRenderer singularityMR = singularityGO.GetComponent<MeshRenderer>();
-			singularityMR.material = singularityMaterial;
-
-			singularityMR.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-			singularityMR.receiveShadows = false;
-			singularityMR.enabled = true;
-
-
+			SetupGameObject ();
 		}
 
 		void ConfigureAccretionDisk ()
 		{
 			if (String.IsNullOrEmpty (accretionDiskTexturePath))
 			{
-				Utils.LogError ("Accretion disk enabled but no acrretion disk texture, disabling accretion disk");
+				Utils.LogError ("Accretion disk enabled but no accretion disk texture, disabling accretion disk");
 				useAccretionDisk = false;
 				return;
 			}
@@ -121,11 +99,63 @@ namespace Singularity
 			singularityMaterial.SetFloat ("diskOuterRadius", accretionDiskOuterRadius / 6000f);
 		}
 
+		void HideCelestialBody ()
+		{
+			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
+			if (!ReferenceEquals (scaledPlanetMeshRenderer, null))
+			{
+				scaledPlanetMeshRenderer.enabled = false;
+			}
+		}
+		
+		void SetupGameObject ()
+		{
+			singularityGO = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+			singularityGO.name = name + " singularity";
+
+			singularityGO.layer = 10;
+
+			singularityGO.transform.position = gameObject.transform.position;
+			singularityGO.transform.parent = gameObject.transform;
+
+			GameObject.Destroy (singularityGO.GetComponent<Collider> ());
+
+			//singularityGO.transform.localScale = new Vector3 (scaledRadius * 10f, scaledRadius * 10f, scaledRadius * 10f); //objects come out waaay smaller than expected, localScale might have sth to do with it?
+			singularityGO.transform.localScale = new Vector3 (scaledRadius * 40f / gameObject.transform.localScale.x, scaledRadius * 40f / gameObject.transform.localScale.y, scaledRadius * 40f / gameObject.transform.localScale.z);
+
+			MeshRenderer singularityMR = singularityGO.GetComponent<MeshRenderer> ();
+			singularityMR.material = singularityMaterial;
+			singularityMR.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+			singularityMR.receiveShadows = false;
+			singularityMR.enabled = true;
+
+
+			singularityMaterial.SetTexture ("CubeMap", Singularity.Instance.galaxyCubemap);
+		}
+
 		public void Update()
 		{
+			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
+
 			if (!ReferenceEquals(scaledPlanetMeshRenderer,null))
 			{
 				scaledPlanetMeshRenderer.enabled = false;
+			}
+
+			singularityMaterial.SetColor("cubeMapFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor(PropertyIDs._Color));
+			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
+		}
+
+		public void OnDestroy()
+		{
+			if (!ReferenceEquals (singularityGO, null))
+			{
+				UnityEngine.Object.Destroy(singularityGO);
+			}
+
+			if (!ReferenceEquals(scaledPlanetMeshRenderer,null))
+			{
+				scaledPlanetMeshRenderer.enabled = true;
 			}
 		}
 	}

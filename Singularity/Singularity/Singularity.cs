@@ -10,12 +10,9 @@ using KSP;
 using KSP.IO;
 using UnityEngine;
 
-
 namespace Singularity
 {
-	[KSPAddon(KSPAddon.Startup.AllGameScenes, true)]
-//	[KSPAddon(KSPAddon.Startup.MainMenu, true)] //make it reload every scene for the main menu shit?
-//	[KSPAddon(KSPAddon.Startup.EveryScene, false)]
+	[KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
 	public class Singularity : MonoBehaviour
 	{
 		private static Singularity instance;
@@ -26,7 +23,12 @@ namespace Singularity
 		
 		private string path,gameDataPath;		
 		public string GameDataPath {get{return gameDataPath;}}
-		
+
+		public Cubemap galaxyCubemap;
+		public MaterialPropertyBlock galaxyCubeControlMPB;
+
+		List<SingularityObject> loadedObjects = new List<SingularityObject>();
+
 		public Singularity ()
 		{
 			if (instance == null)
@@ -41,6 +43,7 @@ namespace Singularity
 				UnityEngine.Object.Destroy (this);
 			}
 		}
+
 		void Awake()
 		{
 			string codeBase = Assembly.GetExecutingAssembly ().CodeBase;
@@ -52,8 +55,55 @@ namespace Singularity
 			gameDataPath = KSPUtil.ApplicationRootPath + "GameData/";	
 			
 			LoadedShadersDictionary = Utils.LoadAssetBundle (path);
+			StartCoroutine (DelayedInit ());
+		}
+
+		// Delay for the galaxy cubemap to be set correctly
+		IEnumerator DelayedInit()
+		{
+			for (int i=0; i<5; i++)
+			{
+				yield return new WaitForFixedUpdate ();
+			}
+			
+			Init();
+		}
+
+		void Init()
+		{
+			SetupCubemap ();
 
 			LoadConfigs ();
+		}
+
+		void SetupCubemap()
+		{
+			try
+			{
+				galaxyCubeControlMPB = typeof(GalaxyCubeControl).GetField ("mpb", Utils.reflectionFlags).GetValue (GalaxyCubeControl.Instance) as MaterialPropertyBlock;
+				UnityEngine.Renderer[] cubeRenderers = typeof(GalaxyCubeControl).GetField ("cubeRenderers", Utils.reflectionFlags).GetValue (GalaxyCubeControl.Instance) as UnityEngine.Renderer[];				
+				Component galaxyCubeControlComponent = (Component) GalaxyCubeControl.Instance;
+				
+				if (!ReferenceEquals (galaxyCubeControlMPB, null) && !ReferenceEquals(cubeRenderers,null))
+				{
+					// Disable cubemap dimming before we capture it
+					galaxyCubeControlMPB.SetColor(PropertyIDs._Color, Color.white);					
+					for (int i = 0; i < cubeRenderers.Length; i++)
+					{
+						cubeRenderers[i].SetPropertyBlock(galaxyCubeControlMPB);	
+					}					
+					// De-rotate galaxy cubemap before we capture it, later adjust in shader for additional planetarium rotations
+					GalaxyCubeControl.Instance.transform.rotation = GalaxyCubeControl.Instance.initRot;
+				}
+			}
+			catch (Exception E)
+			{
+				Utils.LogError("Couldn't setup galaxy cubeMap correctly, Exception thrown: "+E.ToString());
+			}
+			
+			galaxyCubemap = new Cubemap (2048, TextureFormat.ARGB32, 9); //add switch for controllable RES?
+			ScaledCamera.Instance.galaxyCamera.RenderToCubemap (galaxyCubemap);
+			Utils.LogInfo ("GalaxyCubemap initialized");
 		}
 
 		void LoadConfigs()
@@ -81,6 +131,7 @@ namespace Singularity
 					try
 					{
 						SingularityObject singularityObject = scaledBodyTransform.gameObject.AddComponent<SingularityObject> ();
+						loadedObjects.Add(singularityObject);
 						singularityObject.Init (_cn);
 					}
 					catch (Exception e)
@@ -94,6 +145,15 @@ namespace Singularity
 				}
 			}
 		}
+
+		void OnDestroy()
+		{
+			foreach (SingularityObject singularityObject in loadedObjects)
+			{
+				singularityObject.OnDestroy();
+				UnityEngine.Object.Destroy(singularityObject);
+			}
+		}		
 	}
 }
 

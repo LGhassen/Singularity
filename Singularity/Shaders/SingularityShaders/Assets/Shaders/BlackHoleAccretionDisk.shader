@@ -7,12 +7,13 @@
     }
     SubShader
     {
-			Tags {"QUEUE"="Geometry+1" "IgnoreProjector"="True" }
+			Tags {"QUEUE"="Geometry+1" "IgnoreProjector"="True" "RenderType"="Transparent"}
 
-    	 	ZWrite Off
+    	 	ZWrite On
+    	 	ZTest On
     	 	cull Front
     	 
-    		//Blend DstColor Zero
+    		Blend SrcAlpha OneMinusSrcAlpha
 
         Pass
         {
@@ -36,6 +37,9 @@
 
 			uniform float blackHoleRadius;
 			uniform float gravity;
+
+			uniform float3 cubeMapFadeColor;
+			float4x4 cubeMapRotation;
 
 			uniform samplerCUBE CubeMap;
 			uniform sampler2D AccretionDisk;
@@ -164,7 +168,7 @@
 			  }
 			}
 
-			float3 raytrace(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
+			float4 raytrace(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
 			{				
 				float currentDistance = INFINITY;
 				int   currentObject = -1;
@@ -175,7 +179,9 @@
 				float objectDistance;
 
 				float3 rayNextPosition = rayPosition;
-
+				
+				float3 originalRayDir = rayDirection;
+				
 				float4 color = float4(0.0, 0.0, 0.0, 1.0);
 
 #if defined (ACCRETION_DISK_ON)
@@ -200,7 +206,8 @@
 
 			  		//rayDirection=normalize(rayDirection * lightSpeed + rayAccel * stepSize);
 			  		rayDirection=normalize(rayDirection * lightSpeed * stepSize + rayAccel * stepSize);
-
+					//rayDirection = (dot(originalRayDir,rayDirection) >= 0.999999) ? originalRayDir : rayDirection; //crap idea
+					
 			  		//the intersect and testDistance functions are what takes the most time in this loop, however I don't think they can be simplified any further
 			  		objectDistance = sphereDistance(rayPosition, rayDirection, float4(blackHoleOrigin, blackHoleRadius * 1.0));
 			  		testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject, lightSpeed*stepSize);
@@ -240,10 +247,22 @@
 //					}
 				}
 
+//				float dotTerm = dot(originalRayDir, rayDirection)*0.5 + 0.5;  //probably use this to modulate the blueShift?
+//				return float4(dotTerm,dotTerm,dotTerm,1.0);
+
 				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius )
 				{
-					float3 cubeMapColor = texCUBE(CubeMap, rayDirection);
-					color.rgb += (1.0 - color.rgb) * cubeMapColor;
+//					if ((dot(originalRayDir,rayDirection) >= 0.99999) && (length(color.rgb) <=0.01 )) //obviously a crap idea, maybe fade out the gravity below a given threshold so this won't be an issue
+//						color.a = 0.0;
+					//maybe try in KSP and then attempt a static skybox cubemap and fill the scene in from the screen buffer?
+					//because otherwise planets distort too much?
+					
+				
+					//float3 cubeMapColor = texCUBE(CubeMap, rayDirection);
+					float3 cubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz);
+
+					//float3 cubeMapColor = texCUBElod(CubeMap, float4(rayDirection,0.0));
+					color.rgb += (1.0 - color.rgb) * cubeMapColor * cubeMapFadeColor;
 					//consider enabling/disabling mipMaps and texcube Bias (possibly negative, to strike balance between jittering and clarity
 					//maybe even a crisper image when the light is blueshifted, to simulate distant stars becoming clearer, but check if KSP does mipMaps on background skybox first
 				}			
@@ -256,8 +275,8 @@
             	i.worldPos.xyz/=i.worldPos.w;
             	float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
 
-  				float3 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
-  				return float4(color, 1.0);
+  				float4 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
+  				return color;
             }
             ENDCG
         }

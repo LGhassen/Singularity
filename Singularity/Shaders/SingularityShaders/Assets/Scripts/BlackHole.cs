@@ -49,6 +49,8 @@ public class BlackHole : MonoBehaviour
     void Start()
     {				
 		initialCamPos = sceneCam.transform.position;
+		blackHoleMaterial.SetColor("cubeMapFadeColor",Color.white);
+		blackHoleMaterial.SetMatrix("cubeMapRotation",Matrix4x4.identity);
     }
 		
     void Update()
@@ -61,7 +63,7 @@ public class BlackHole : MonoBehaviour
 		blackHoleMaterial.SetFloat("diskInnerRadius", DiskInnerRadius);
 		blackHoleMaterial.SetFloat("diskOuterRadius", DiskOuterRadius);
 
-		gameObject.transform.position = new Vector3(Mathf.Sin(0.53f*Time.time), 2f+3f*Mathf.Cos(0.74f*Time.time), Mathf.Cos(0.22f*Time.time));
+		//gameObject.transform.position = new Vector3(Mathf.Sin(0.53f*Time.time), 2f+3f*Mathf.Cos(0.74f*Time.time), Mathf.Cos(0.22f*Time.time));
 
 		sceneCam.transform.RotateAround(gameObject.transform.position, Vector3.up, 10 * Time.deltaTime);
 		float initialLength = (initialCamPos - gameObject.transform.position).magnitude;

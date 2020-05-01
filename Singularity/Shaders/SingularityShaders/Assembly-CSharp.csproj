@@ -58,6 +58,7 @@
      <Compile Include="Assets\Scripts\BlackHole.cs" />
      <None Include="Assets\Shaders\BlackHole.shader" />
      <None Include="Assets\Shaders\SkyBox.shader" />
+     <None Include="Assets\Shaders\Invisible.shader" />
      <None Include="Assets\Shaders\BlackHoleAccretionDisk.shader" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>E:/gh/scattererGithub/Singularity/Singularity/Shaders/SingularityShaders/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>
