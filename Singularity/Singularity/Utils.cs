@@ -62,44 +62,44 @@ namespace Singularity
 			return LoadedShaders;
 		}
 		
-//		// Borrowed from smokeScreen
-//		public static string WriteRootNode(ConfigNode node)
-//		{
-//			StringBuilder builder = new StringBuilder();
-//			
-//			//print("node.values.Count " + node.values.Count + " node.nodes.Count " + node.nodes.Count);
-//			for (int i = 0; i < node.values.Count; i++)
-//			{
-//				ConfigNode.Value item = node.values[i];
-//				builder.AppendLine(string.Concat(item.name, " = ", item.value));
-//			}
-//			for (int j = 0; j < node.nodes.Count; j++)
-//			{
-//				WriteNodeString(node.nodes[j], ref builder, string.Empty);
-//			}
-//			return builder.ToString();
-//		}
-//		
-//		public static void WriteNodeString(ConfigNode node, ref StringBuilder builder, string indent)
-//		{
-//			builder.AppendLine(string.Concat(indent, node.name));
-//			builder.AppendLine(string.Concat(indent, "{"));
-//			string str = string.Concat(indent, "  ");
-//			for (int i = 0; i < node.values.Count; i++)
-//			{
-//				ConfigNode.Value item = node.values[i];
-//				builder.AppendLine(string.Concat(str, item.name, " = ", item.value));
-//			}
-//			for (int j = 0; j < node.nodes.Count; j++)
-//			{
-//				WriteNodeString(node, ref builder, str);
-//			}
-//			builder.AppendLine(string.Concat(indent, "}"));
-//		}
-//		
-//		public static char[] delimiters = new char[4]
-//		{
-//			' ',',',';','\t'
-//		};
+		// Borrowed from smokeScreen
+		public static string WriteRootNode(ConfigNode node)
+		{
+			StringBuilder builder = new StringBuilder();
+			
+			//print("node.values.Count " + node.values.Count + " node.nodes.Count " + node.nodes.Count);
+			for (int i = 0; i < node.values.Count; i++)
+			{
+				ConfigNode.Value item = node.values[i];
+				builder.AppendLine(string.Concat(item.name, " = ", item.value));
+			}
+			for (int j = 0; j < node.nodes.Count; j++)
+			{
+				WriteNodeString(node.nodes[j], ref builder, string.Empty);
+			}
+			return builder.ToString();
+		}
+		
+		public static void WriteNodeString(ConfigNode node, ref StringBuilder builder, string indent)
+		{
+			builder.AppendLine(string.Concat(indent, node.name));
+			builder.AppendLine(string.Concat(indent, "{"));
+			string str = string.Concat(indent, "  ");
+			for (int i = 0; i < node.values.Count; i++)
+			{
+				ConfigNode.Value item = node.values[i];
+				builder.AppendLine(string.Concat(str, item.name, " = ", item.value));
+			}
+			for (int j = 0; j < node.nodes.Count; j++)
+			{
+				WriteNodeString(node, ref builder, str);
+			}
+			builder.AppendLine(string.Concat(indent, "}"));
+		}
+		
+		public static char[] delimiters = new char[4]
+		{
+			' ',',',';','\t'
+		};
 	}
 }

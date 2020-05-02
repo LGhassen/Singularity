@@ -111,6 +111,15 @@ namespace Singularity
 				scaledPlanetMeshRenderer.enabled = false;
 			}
 		}
+
+		void UnHideCelestialBody ()
+		{
+			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
+			if (!ReferenceEquals (scaledPlanetMeshRenderer, null))
+			{
+				scaledPlanetMeshRenderer.enabled = true;
+			}
+		}
 		
 		void SetupGameObject ()
 		{
@@ -150,6 +159,38 @@ namespace Singularity
 
 			singularityMaterial.SetColor("galaxyFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
 			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
+		}
+
+		public void ApplyFromUI(ConfigNode _cn)
+		{
+			Utils.LogDebug ("Applying config from UI:\r\n" + _cn.ToString ());
+
+			if (!ConfigNode.LoadObjectFromConfig (this, _cn))
+			{
+				Utils.LogError("Apply failed");
+				return;
+			}
+
+			scaledRadius = radius / 6000f;
+			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
+
+			singularityMaterial.SetFloat("gravity", gravity);
+			
+			if (useAccretionDisk)
+			{
+				ConfigureAccretionDisk ();
+			}
+			
+			if (hideCelestialBody)
+			{
+				HideCelestialBody ();
+			}
+			else
+			{
+				UnHideCelestialBody();
+			}
+			
+			singularityGO.transform.localScale = new Vector3 (scaledRadius * 80f / gameObject.transform.localScale.x, scaledRadius * 80f / gameObject.transform.localScale.y, scaledRadius * 80f / gameObject.transform.localScale.z);
 		}
 
 		public void OnDestroy()

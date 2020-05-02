@@ -28,7 +28,7 @@ namespace Singularity
 		public Cubemap galaxyCubemap;
 		public MaterialPropertyBlock galaxyCubeControlMPB;
 
-		List<SingularityObject> loadedObjects = new List<SingularityObject>();
+		public List<SingularityObject> loadedObjects = new List<SingularityObject>();
 		
 		public RenderTexture screenBuffer;
 		CommandBuffer screenCopyCommandBuffer;
