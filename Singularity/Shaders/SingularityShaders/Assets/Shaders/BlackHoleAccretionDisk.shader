@@ -265,9 +265,22 @@
 					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) && (objectCubeMapColor.g != 0.0) && (objectCubeMapColor.b != 0.0); // we check if the objectCubeMap has the object
 					//maybe in this case also do some blending over the last 0.05-0.1?
 					objectCubeMapColor*=galaxyFadeColor;
-					// we check if object is on the screen buffer or not
+							
+					float4 depthClipPos = float4(screenPos.xy, 1.0-depth, 1.0);
+					//float4 depthClipPos = float4(clipPos.xy, depth, 1.0);
+    				depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
+					//position of the fragment we are getting from the screen texture
+					float4 camPos = mul(unity_CameraInvProjection, depthClipPos);
+					camPos.xyz /= camPos.w;
+					camPos.z *= -1;
+
 					float3 forward = mul((float3x3) unity_CameraToWorld, float3(0,0,1));
-					bool onScreen = screenPos.x >= 0.0 && screenPos.x <= 1.0 && screenPos.y >= 0.0 && screenPos.y <= 1.0 && (dot(forward,infinityPos-_WorldSpaceCameraPos) > 0.0) ; //idk why couldn't check with z
+					float screenBufferDistance = length(camPos.xyz);
+					bool behindBlackHole = (screenBufferDistance > length(_WorldSpaceCameraPos.xyz-blackHoleOrigin)) || (dot(blackHoleOrigin-_WorldSpaceCameraPos.xyz,forward) < 0.0 ); //needs an added check to only apply this when black hole is not behind the Camera, otherwise return true?
+
+					// we check if object is on the screen buffer or not
+
+					bool onScreen = behindBlackHole && screenPos.x >= 0.0 && screenPos.x <= 1.0 && screenPos.y >= 0.0 && screenPos.y <= 1.0 && (dot(forward,infinityPos-_WorldSpaceCameraPos) > 0.0) ; //idk why couldn't check with z
 																					//still need to reconstruct distance to camera and check that object is not closer to the screen than black hole
 
 					 //seems to be a good approach! remove if statements if possible
