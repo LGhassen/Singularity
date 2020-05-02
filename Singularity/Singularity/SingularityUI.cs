@@ -82,6 +82,7 @@ namespace Singularity
 			if (Singularity.Instance.loadedObjects.Count != 0)
 			{
 				GUILayout.BeginVertical ();
+				GUILayout.Label ("Choose singularity to edit");
 				selGridInt = GUILayout.SelectionGrid (selGridInt, selStrings, 1);
 				if (GUILayout.Button ("Edit Selected"))
 				{

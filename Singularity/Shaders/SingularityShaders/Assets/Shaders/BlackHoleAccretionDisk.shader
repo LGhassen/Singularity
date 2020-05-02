@@ -209,9 +209,10 @@
 
 			  		rayAccel = normalize(gravityVector) * gravity / (rayDistance * rayDistance);
 
-			  		//rayDirection=normalize(rayDirection * lightSpeed + rayAccel * stepSize);
+					float accelFadeOut = clamp( ( length(rayAccel) - 0.001 ) / 0.001, 0.0, 1.0); //we fade out acceleration over the last 0.001 so we can have a smaller enclosing mesh
+			  		rayAccel = lerp(0.0, rayAccel, accelFadeOut);
+
 			  		rayDirection=normalize(rayDirection * lightSpeed * stepSize + rayAccel * stepSize);
-					//rayDirection = (dot(originalRayDir,rayDirection) >= 0.999999) ? originalRayDir : rayDirection; //crap idea
 
 			  		objectDistance = sphereDistance(rayPosition, rayDirection, float4(blackHoleOrigin, blackHoleRadius * 1.0));
 			  		testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject, lightSpeed*stepSize);
@@ -284,7 +285,7 @@
 																					//still need to reconstruct distance to camera and check that object is not closer to the screen than black hole
 
 					 //seems to be a good approach! remove if statements if possible
-					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius)
+					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius) //this needs to be changed to be in relationship to the enclosing mesh radius, or event Horizon radius
 					{
 						// object on screen -> use screenColor if actually an object or galaxyColor
 						// object off screen -> use objectCubeMapColor if actually an object or galaxyColor

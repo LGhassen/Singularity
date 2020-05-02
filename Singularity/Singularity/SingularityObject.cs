@@ -22,6 +22,7 @@ namespace Singularity
 		[Persistent] public float accretionDiskOuterRadius = 5f;
 
 		float scaledRadius = 1f;
+		float enclosingMeshRadius = 1f;
 
 		Material singularityMaterial;
 		Texture2D AccretionDiskTexture;
@@ -47,6 +48,9 @@ namespace Singularity
 			scaledRadius = radius / 6000f;
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
+			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) / 0.00836f; // The radius (in scaled Space) at which the gravity no longer warps the image
+																   // Serves as the radius of our enclosing mesh, mostly trial and error
+
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 3005;
 
@@ -54,6 +58,9 @@ namespace Singularity
 			{
 				ConfigureAccretionDisk ();
 			}
+
+			// When not hiding the celestialBody, objects write to depth buffer disturbing the lensing, try to disable it through renderType Tags or the like
+			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
 
 			if (hideCelestialBody)
 			{
@@ -105,16 +112,14 @@ namespace Singularity
 
 		void HideCelestialBody ()
 		{
-			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
 			if (!ReferenceEquals (scaledPlanetMeshRenderer, null))
 			{
 				scaledPlanetMeshRenderer.enabled = false;
 			}
 		}
-
+		
 		void UnHideCelestialBody ()
 		{
-			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
 			if (!ReferenceEquals (scaledPlanetMeshRenderer, null))
 			{
 				scaledPlanetMeshRenderer.enabled = true;
@@ -134,8 +139,7 @@ namespace Singularity
 
 			GameObject.Destroy (singularityGO.GetComponent<Collider> ());
 
-			//singularityGO.transform.localScale = new Vector3 (scaledRadius * 10f, scaledRadius * 10f, scaledRadius * 10f); //objects come out waaay smaller than expected, localScale might have sth to do with it?
-			singularityGO.transform.localScale = new Vector3 (scaledRadius * 80f / gameObject.transform.localScale.x, scaledRadius * 80f / gameObject.transform.localScale.y, scaledRadius * 80f / gameObject.transform.localScale.z);
+			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 
 			MeshRenderer singularityMR = singularityGO.GetComponent<MeshRenderer> ();
 			singularityMR.material = singularityMaterial;
@@ -152,10 +156,9 @@ namespace Singularity
 		{
 			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
 
-			if (!ReferenceEquals(scaledPlanetMeshRenderer,null))
-			{
-				scaledPlanetMeshRenderer.enabled = false;
-			}
+			// Is this needed eevery frame?
+			if (hideCelestialBody)
+				HideCelestialBody ();
 
 			singularityMaterial.SetColor("galaxyFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
 			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
@@ -189,8 +192,9 @@ namespace Singularity
 			{
 				UnHideCelestialBody();
 			}
-			
-			singularityGO.transform.localScale = new Vector3 (scaledRadius * 80f / gameObject.transform.localScale.x, scaledRadius * 80f / gameObject.transform.localScale.y, scaledRadius * 80f / gameObject.transform.localScale.z);
+
+			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) / 0.00836f;
+			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 		}
 
 		public void OnDestroy()
