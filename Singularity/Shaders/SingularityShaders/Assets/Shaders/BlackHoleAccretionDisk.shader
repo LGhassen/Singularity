@@ -38,12 +38,16 @@
 			uniform float blackHoleRadius;
 			uniform float gravity;
 
-			uniform float3 cubeMapFadeColor;
+			uniform sampler2D _CameraDepthTexture;
+			uniform sampler2D screenBuffer;
+
+			uniform samplerCUBE CubeMap;		//galaxy cubemap
+			uniform samplerCUBE objectCubeMap;	//scaledSpace objects cubemap (no background)
+
+			uniform float3 galaxyFadeColor;
 			float4x4 cubeMapRotation;
 
-			uniform samplerCUBE CubeMap;
 			uniform sampler2D AccretionDisk;
-			//uniform sampler2D RadialAccretionDisk;
 
 			uniform float3 diskNormal;
 			uniform float diskInnerRadius;
@@ -59,6 +63,7 @@
                 float4 vertex  : SV_POSITION;
                 float4 worldPos : TEXCOORD0;
                 float4 blackHoleOrigin : TEXCOORD1;
+
             };
 
             v2f vert (appdata v)
@@ -207,8 +212,7 @@
 			  		//rayDirection=normalize(rayDirection * lightSpeed + rayAccel * stepSize);
 			  		rayDirection=normalize(rayDirection * lightSpeed * stepSize + rayAccel * stepSize);
 					//rayDirection = (dot(originalRayDir,rayDirection) >= 0.999999) ? originalRayDir : rayDirection; //crap idea
-					
-			  		//the intersect and testDistance functions are what takes the most time in this loop, however I don't think they can be simplified any further
+
 			  		objectDistance = sphereDistance(rayPosition, rayDirection, float4(blackHoleOrigin, blackHoleRadius * 1.0));
 			  		testDistance(ID_BLACKHOLE, objectDistance, currentDistance, currentObject, lightSpeed*stepSize);
 
@@ -238,33 +242,48 @@
 
 					//move forward
 					rayPosition += lightSpeed * stepSize * rayDirection;
-
-//					 //if we are out of the gravity pull, and the ray is going away from the black hole, just stop
-//					 //useless optimization, doesn't net any added performance
-//					if ( (rayDistance < 1.0) && (dot(rayDirection, gravityVector) < 0.0 ) )
-//					{
-//						break;
-//					}
 				}
-
-//				float dotTerm = dot(originalRayDir, rayDirection)*0.5 + 0.5;  //probably use this to modulate the blueShift?
-//				return float4(dotTerm,dotTerm,dotTerm,1.0);
 
 				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius )
 				{
-//					if ((dot(originalRayDir,rayDirection) >= 0.99999) && (length(color.rgb) <=0.01 )) //obviously a crap idea, maybe fade out the gravity below a given threshold so this won't be an issue
-//						color.a = 0.0;
-					//maybe try in KSP and then attempt a static skybox cubemap and fill the scene in from the screen buffer?
-					//because otherwise planets distort too much?
-					
-				
-					//float3 cubeMapColor = texCUBE(CubeMap, rayDirection);
-					float3 cubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz);
-
-					//float3 cubeMapColor = texCUBElod(CubeMap, float4(rayDirection,0.0));
-					color.rgb += (1.0 - color.rgb) * cubeMapColor * cubeMapFadeColor;
 					//consider enabling/disabling mipMaps and texcube Bias (possibly negative, to strike balance between jittering and clarity
-					//maybe even a crisper image when the light is blueshifted, to simulate distant stars becoming clearer, but check if KSP does mipMaps on background skybox first
+					//maybe even a crisper image when the light is blueshifted
+					float3 galaxyCubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz) * galaxyFadeColor;
+
+					//float3 infinityPos = rayPosition + rayDirection * INFINITY; //infinity = 1000000.0
+					float3 infinityPos = rayPosition + rayDirection * 2000.0; //we take an assumption here about the distance of a distinguishable object
+
+					float4 clipPos = UnityWorldToClipPos(float4(infinityPos,1.0));
+  					float4 screenPos = ComputeScreenPos(clipPos);
+  					screenPos.xyz/=screenPos.w;
+
+  					float depth =  tex2D(_CameraDepthTexture, screenPos.xy);
+					float3 screenColor = tex2D(screenBuffer,screenPos.xy);
+
+					float3 objectCubeMapDir = normalize(infinityPos - blackHoleOrigin); //is this even necessary?
+					float3 objectCubeMapColor = texCUBE(objectCubeMap,objectCubeMapDir);
+					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) && (objectCubeMapColor.g != 0.0) && (objectCubeMapColor.b != 0.0); // we check if the objectCubeMap has the object
+					//maybe in this case also do some blending over the last 0.05-0.1?
+					objectCubeMapColor*=galaxyFadeColor;
+					// we check if object is on the screen buffer or not
+					float3 forward = mul((float3x3) unity_CameraToWorld, float3(0,0,1));
+					bool onScreen = screenPos.x >= 0.0 && screenPos.x <= 1.0 && screenPos.y >= 0.0 && screenPos.y <= 1.0 && (dot(forward,infinityPos-_WorldSpaceCameraPos) > 0.0) ; //idk why couldn't check with z
+																					//still need to reconstruct distance to camera and check that object is not closer to the screen than black hole
+
+					 //seems to be a good approach! remove if statements if possible
+					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius)
+					{
+						// object on screen -> use screenColor if actually an object or galaxyColor
+						// object off screen -> use objectCubeMapColor if actually an object or galaxyColor
+						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor);
+					}
+					else
+					{
+						// below a certain altitude we just use the cubemap all the time because the heavy distorsion causes differences to be visible between the two
+						screenColor =  onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor;
+					}
+
+					color.rgb += (1.0 - color.rgb) * screenColor;
 				}			
 
 				return color;
@@ -276,6 +295,7 @@
             	float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
 
   				float4 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
+
   				return color;
             }
             ENDCG

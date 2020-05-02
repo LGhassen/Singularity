@@ -29,6 +29,7 @@ namespace Singularity
 		MeshRenderer scaledPlanetMeshRenderer;
 
 		GameObject singularityGO;
+		SingularityCenteredCubeMap singularityCubeMap;
 
 		public SingularityObject ()
 		{
@@ -60,6 +61,9 @@ namespace Singularity
 			}
 
 			SetupGameObject ();
+
+			singularityMaterial.SetTexture ("CubeMap", Singularity.Instance.galaxyCubemap);
+			singularityMaterial.SetTexture ("screenBuffer", Singularity.Instance.screenBuffer);
 		}
 
 		void ConfigureAccretionDisk ()
@@ -113,7 +117,8 @@ namespace Singularity
 			singularityGO = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 			singularityGO.name = name + " singularity";
 
-			singularityGO.layer = 10;
+			//singularityGO.layer = 10;
+			singularityGO.layer = 9;
 
 			singularityGO.transform.position = gameObject.transform.position;
 			singularityGO.transform.parent = gameObject.transform;
@@ -121,7 +126,7 @@ namespace Singularity
 			GameObject.Destroy (singularityGO.GetComponent<Collider> ());
 
 			//singularityGO.transform.localScale = new Vector3 (scaledRadius * 10f, scaledRadius * 10f, scaledRadius * 10f); //objects come out waaay smaller than expected, localScale might have sth to do with it?
-			singularityGO.transform.localScale = new Vector3 (scaledRadius * 40f / gameObject.transform.localScale.x, scaledRadius * 40f / gameObject.transform.localScale.y, scaledRadius * 40f / gameObject.transform.localScale.z);
+			singularityGO.transform.localScale = new Vector3 (scaledRadius * 80f / gameObject.transform.localScale.x, scaledRadius * 80f / gameObject.transform.localScale.y, scaledRadius * 80f / gameObject.transform.localScale.z);
 
 			MeshRenderer singularityMR = singularityGO.GetComponent<MeshRenderer> ();
 			singularityMR.material = singularityMaterial;
@@ -129,8 +134,9 @@ namespace Singularity
 			singularityMR.receiveShadows = false;
 			singularityMR.enabled = true;
 
-
-			singularityMaterial.SetTexture ("CubeMap", Singularity.Instance.galaxyCubemap);
+			singularityCubeMap = singularityGO.AddComponent<SingularityCenteredCubeMap> ();
+			singularityCubeMap.singularityMR = singularityMR;
+			singularityCubeMap.singularityMaterial = singularityMaterial;
 		}
 
 		public void Update()
@@ -142,7 +148,7 @@ namespace Singularity
 				scaledPlanetMeshRenderer.enabled = false;
 			}
 
-			singularityMaterial.SetColor("cubeMapFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor(PropertyIDs._Color));
+			singularityMaterial.SetColor("galaxyFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
 			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
 		}
 

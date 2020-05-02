@@ -90,6 +90,7 @@
     <Compile Include="Singularity.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="SingularityObject.cs" />
+    <Compile Include="SingularityCenteredCubeMap.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

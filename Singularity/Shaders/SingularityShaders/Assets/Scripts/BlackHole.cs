@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class BlackHole : MonoBehaviour
 {
@@ -38,6 +39,9 @@ public class BlackHole : MonoBehaviour
 	[SerializeField]
 	float DiskOuterRadius;
 
+	RenderTexture screenBuffer;
+	CommandBuffer screenCopyCommandBuffer;
+
 	Vector3 initialCamPos;
 
 
@@ -49,8 +53,17 @@ public class BlackHole : MonoBehaviour
     void Start()
     {				
 		initialCamPos = sceneCam.transform.position;
-		blackHoleMaterial.SetColor("cubeMapFadeColor",Color.white);
+		blackHoleMaterial.SetColor("galaxyFadeColor",Color.white);
 		blackHoleMaterial.SetMatrix("cubeMapRotation",Matrix4x4.identity);
+
+		screenBuffer = new RenderTexture (Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, 0);
+		screenBuffer.Create ();
+
+		screenCopyCommandBuffer = new CommandBuffer();
+		screenCopyCommandBuffer.name = "SingularityGrabScreen";
+		screenCopyCommandBuffer.Blit (BuiltinRenderTextureType.CurrentActive, screenBuffer);
+		sceneCam.AddCommandBuffer (CameraEvent.AfterForwardOpaque, screenCopyCommandBuffer);
+		blackHoleMaterial.SetTexture("screenBuffer",screenBuffer);
     }
 		
     void Update()
@@ -115,4 +128,11 @@ public class BlackHole : MonoBehaviour
 //		sceneCam.transform.position = gameObject.transform.position + Quaternion.Euler(xRot, yRot, 0f) * (initialLength * -Vector3.back);
 //		sceneCam.transform.LookAt(gameObject.transform.position, Vector3.up);
     }
+
+	void OnDestroy()
+	{
+		if (!ReferenceEquals(sceneCam,null))
+			sceneCam.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque,screenCopyCommandBuffer);
+		screenBuffer.Release ();
+	}
 }

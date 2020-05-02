@@ -9,6 +9,7 @@ using System.Runtime;
 using KSP;
 using KSP.IO;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Singularity
 {
@@ -28,6 +29,9 @@ namespace Singularity
 		public MaterialPropertyBlock galaxyCubeControlMPB;
 
 		List<SingularityObject> loadedObjects = new List<SingularityObject>();
+		
+		public RenderTexture screenBuffer;
+		CommandBuffer screenCopyCommandBuffer;
 
 		public Singularity ()
 		{
@@ -72,6 +76,23 @@ namespace Singularity
 		void Init()
 		{
 			SetupCubemap ();
+
+			screenBuffer = new RenderTexture (Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, 0);
+//			screenBuffer.useMipMap = true;
+//			screenBuffer.autoGenerateMips = true;
+
+			//disable these actually since we use it only for planets, not stars
+			screenBuffer.useMipMap = false;
+			screenBuffer.autoGenerateMips = false;
+
+			screenBuffer.filterMode = FilterMode.Bilinear;
+			screenBuffer.Create ();
+
+			screenCopyCommandBuffer = new CommandBuffer();
+			screenCopyCommandBuffer.name = "SingularityGrabScreen";
+			screenCopyCommandBuffer.Blit (BuiltinRenderTextureType.CurrentActive, screenBuffer);
+			//screenCopyCommandBuffer.CopyTexture (BuiltinRenderTextureType.CurrentActive, screenBuffer); //apparently faster than blit, doesn't work here, not the same format probably
+			ScaledCamera.Instance.cam.AddCommandBuffer (CameraEvent.AfterForwardOpaque, screenCopyCommandBuffer); //we should add or remove this when needed
 
 			LoadConfigs ();
 		}
@@ -153,6 +174,9 @@ namespace Singularity
 				singularityObject.OnDestroy();
 				UnityEngine.Object.Destroy(singularityObject);
 			}
+
+			ScaledCamera.Instance.cam.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque,screenCopyCommandBuffer);
+			screenBuffer.Release ();
 		}		
 	}
 }
