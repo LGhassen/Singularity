@@ -22,6 +22,7 @@ namespace Singularity
 
 		bool cubeMapUpdated=false;
 		int screenBufferProperty;
+		int cubemapFaceToUpdate = 0;
 
 
 		public SingularityCenteredCubeMap ()
@@ -91,10 +92,15 @@ namespace Singularity
 			//limit to 1 cubeMap update per frame
 			if (!cubeMapUpdated)
 			{
+				cubemapFaceToUpdate = (cubemapFaceToUpdate+1) % 6; //update one face per cubemap per frame, later change it to update one cubemap only per frame
+				int updateMask = 1 << cubemapFaceToUpdate;
+				//int updateMask = (TimeWarp.CurrentRate > 4) ? 63 : (1 << cubemapFaceToUpdate);
+
+
 				//disable rendering from our cubeMap (so no recursive rendering), disabling MR or GO here will break rendering, so use layer
 				singularityGO.layer = 0;
 				//ScaledCamera.Instance.galaxyCamera.RenderToCubemap (objectCubemap); // broken
-				objectCamera.RenderToCubemap (singularityCubemap);
+				objectCamera.RenderToCubemap (singularityCubemap, updateMask);
 				singularityGO.layer = 10;
 
 				//TODO: here notify target wormhole to update
