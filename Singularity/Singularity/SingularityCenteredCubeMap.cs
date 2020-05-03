@@ -17,8 +17,12 @@ namespace Singularity
 	{
 		Camera objectCamera;
 		public RenderTexture singularityCubemap;
-		public MeshRenderer singularityMR;
+		public GameObject singularityGO;
 		public Material singularityMaterial;
+
+		bool cubeMapUpdated=false;
+		int screenBufferProperty;
+
 
 		public SingularityCenteredCubeMap ()
 		{
@@ -28,8 +32,7 @@ namespace Singularity
 		void Awake()
 		{
 			objectCamera = gameObject.AddComponent<Camera> ();
-			//objectCamera.cullingMask = (1 << 9) | (1 << 10);
-			objectCamera.cullingMask = (1 << 10);
+			objectCamera.cullingMask = (1 << 9) | (1 << 10);
 			objectCamera.renderingPath = ScaledCamera.Instance.cam.renderingPath;
 			objectCamera.depthTextureMode = DepthTextureMode.None;
 			objectCamera.farClipPlane = ScaledCamera.Instance.cam.farClipPlane;
@@ -48,27 +51,57 @@ namespace Singularity
 			singularityCubemap.autoGenerateMips = true;
 			//objectCubemap.antiAliasing = 1;
 			singularityCubemap.Create ();
-
+			StartCoroutine (SetMaterialTexture ());
 
 			objectCamera.targetTexture = null;
+
+			screenBufferProperty = Shader.PropertyToID("useScreenBuffer");
+		}
+		
+		IEnumerator SetMaterialTexture()
+		{
+			yield return new WaitForFixedUpdate ();
+			singularityMaterial.SetTexture ("objectCubeMap", singularityCubemap);
 		}
 
-		void Update()
+		public void Update()
 		{
-			objectCamera.enabled = false; //probably remove this
-			singularityMR.enabled = true;
+			cubeMapUpdated = false;
 		}
 
 		public void OnWillRenderObject()
 		{
-			//ScaledCamera.Instance.galaxyCamera.RenderToCubemap (objectCubemap); //absolutely broken
 
-			//singularityMR.enabled = false; //it doesn't seem to like these? wtf? I'm suspecting some kind of recursive rendering
-			objectCamera.RenderToCubemap (singularityCubemap);
-			singularityMaterial.SetTexture ("objectCubeMap", singularityCubemap); //change this out of OnWillRenderObject?
-			//singularityMR.enabled = true;
+			if (Camera.current == ScaledCamera.Instance.cam)
+			{
+				singularityMaterial.SetFloat(screenBufferProperty,1f); //use screenBuffer only on scaledSpace camera
+				UpdateCubeMap (); //update only when called by scaledCamera (or in future by wormhole), to avoid singularities calling it on each other and being disabled in each other's cubemaps
+			}
+
+			//works on first black hole but breaks second one,and black holes always hide each other when using screenBuffer mode which is a shame
+			//add switch for black holes which can show other black holes? how do I handle this? Like for the case of murph and the wormhole? what to do then
+//			else
+//			{
+//				singularityMaterial.SetFloat(screenBufferProperty,0f);
+//			}
 		}
 		
+		public void UpdateCubeMap ()
+		{
+			//limit to 1 cubeMap update per frame
+			if (!cubeMapUpdated)
+			{
+				//disable rendering from our cubeMap (so no recursive rendering), disabling MR or GO here will break rendering, so use layer
+				singularityGO.layer = 0;
+				//ScaledCamera.Instance.galaxyCamera.RenderToCubemap (objectCubemap); // broken
+				objectCamera.RenderToCubemap (singularityCubemap);
+				singularityGO.layer = 10;
+
+				//TODO: here notify target wormhole to update
+
+				cubeMapUpdated = true;
+			}
+		}
 	}
 }
 

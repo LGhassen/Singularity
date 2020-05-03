@@ -59,8 +59,15 @@ namespace Singularity
 				ConfigureAccretionDisk ();
 			}
 
-			// When not hiding the celestialBody, objects write to depth buffer disturbing the lensing, try to disable it through renderType Tags or the like
 			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
+
+//			// When not hiding the celestialBody, objects write to depth buffer which messes up the lensing, try to disable it through renderType Tags
+//			// But it's not just the depth, we also need to disable the actual object when pre-rendering the screen
+//			// Didn't work, but since we shouldn't have planets that close to stars, whatever
+//			if (!ReferenceEquals (scaledPlanetMeshRenderer, null) && !ReferenceEquals (scaledPlanetMeshRenderer.material, null))
+//			{
+//				scaledPlanetMeshRenderer.material.SetOverrideTag ("RenderType", "Transparent")
+//			}
 
 			if (hideCelestialBody)
 			{
@@ -71,6 +78,8 @@ namespace Singularity
 
 			singularityMaterial.SetTexture ("CubeMap", Singularity.Instance.galaxyCubemap);
 			singularityMaterial.SetTexture ("screenBuffer", Singularity.Instance.screenBuffer);
+
+			//TODO: if wormHole -> delay for a few frames then grab the renderCube of target singularity
 		}
 
 		void ConfigureAccretionDisk ()
@@ -131,8 +140,7 @@ namespace Singularity
 			singularityGO = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 			singularityGO.name = name + " singularity";
 
-			//singularityGO.layer = 10;
-			singularityGO.layer = 9;
+			singularityGO.layer = 10;
 
 			singularityGO.transform.position = gameObject.transform.position;
 			singularityGO.transform.parent = gameObject.transform;
@@ -148,8 +156,8 @@ namespace Singularity
 			singularityMR.enabled = true;
 
 			singularityCubeMap = singularityGO.AddComponent<SingularityCenteredCubeMap> ();
-			singularityCubeMap.singularityMR = singularityMR;
 			singularityCubeMap.singularityMaterial = singularityMaterial;
+			singularityCubeMap.singularityGO = singularityGO;
 		}
 
 		public void Update()
