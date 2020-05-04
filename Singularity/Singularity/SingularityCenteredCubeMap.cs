@@ -17,7 +17,7 @@ namespace Singularity
 	{
 		Camera objectCamera;
 		public RenderTexture singularityCubemap;
-		public GameObject singularityGO;
+		public SingularityObject parentSingularity;
 		public Material singularityMaterial;
 
 		bool cubeMapUpdated=false;
@@ -41,7 +41,6 @@ namespace Singularity
 
 			objectCamera.clearFlags = CameraClearFlags.Color;
 			objectCamera.backgroundColor = Color.black;
-			//objectCamera.clearFlags = CameraClearFlags.Depth;
 			objectCamera.enabled = false;
 
 			objectCamera.transform.position = gameObject.transform.position;
@@ -50,7 +49,7 @@ namespace Singularity
 			singularityCubemap = new RenderTexture(2048, 2048, 16, RenderTextureFormat.ARGB32, 9);
 			singularityCubemap.dimension = UnityEngine.Rendering.TextureDimension.Cube;
 			singularityCubemap.autoGenerateMips = true;
-			//objectCubemap.antiAliasing = 1;
+			singularityCubemap.filterMode = FilterMode.Trilinear;
 			singularityCubemap.Create ();
 			StartCoroutine (SetMaterialTexture ());
 
@@ -92,20 +91,29 @@ namespace Singularity
 			//limit to 1 cubeMap update per frame
 			if (!cubeMapUpdated)
 			{
-				cubemapFaceToUpdate = (cubemapFaceToUpdate+1) % 6; //update one face per cubemap per frame, later change it to update one cubemap only per frame
-				int updateMask = 1 << cubemapFaceToUpdate;
-				//int updateMask = (TimeWarp.CurrentRate > 4) ? 63 : (1 << cubemapFaceToUpdate);
+				Singularity.Instance.scaledSceneBufferRenderer.RenderSceneIfNeeded();
 
+				cubemapFaceToUpdate = (cubemapFaceToUpdate+1) % 6; //update one face per cubemap per frame, later change it to only 1 face of ONE cubemap per frame
+				int updateMask = 1 << cubemapFaceToUpdate;	
+				//int updateMask = (TimeWarp.CurrentRate > 4) ? 63 : (1 << cubemapFaceToUpdate);						
 
-				//disable rendering from our cubeMap (so no recursive rendering), disabling MR or GO here will break rendering, so use layer
-				singularityGO.layer = 0;
 				//ScaledCamera.Instance.galaxyCamera.RenderToCubemap (objectCubemap); // broken
+				parentSingularity.DisableForSceneOrCubemap();
 				objectCamera.RenderToCubemap (singularityCubemap, updateMask);
-				singularityGO.layer = 10;
+				parentSingularity.ReEnable();
 
 				//TODO: here notify target wormhole to update
 
 				cubeMapUpdated = true;
+			}
+		}
+
+		public void OnDestroy()
+		{
+			Utils.LogInfo ("Singularity cubemap ondestroy");
+			if (!ReferenceEquals (singularityCubemap, null))
+			{
+				singularityCubemap.Release();
 			}
 		}
 	}

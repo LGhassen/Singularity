@@ -33,6 +33,8 @@ namespace Singularity
 		public RenderTexture screenBuffer;
 		CommandBuffer screenCopyCommandBuffer;
 
+		public ScaledSceneBufferRenderer scaledSceneBufferRenderer;
+
 		public Singularity ()
 		{
 			if (instance == null)
@@ -77,22 +79,12 @@ namespace Singularity
 		{
 			SetupCubemap ();
 
-			screenBuffer = new RenderTexture (Screen.width, Screen.height, 0, RenderTextureFormat.ARGB32, 0);
-//			screenBuffer.useMipMap = true;
-//			screenBuffer.autoGenerateMips = true;
-
-			//disable these actually since we use it only for planets, not stars
-			screenBuffer.useMipMap = false;
-			screenBuffer.autoGenerateMips = false;
-
+			screenBuffer = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, 9);
 			screenBuffer.filterMode = FilterMode.Bilinear;
 			screenBuffer.Create ();
 
-			screenCopyCommandBuffer = new CommandBuffer();
-			screenCopyCommandBuffer.name = "SingularityGrabScreen";
-			screenCopyCommandBuffer.Blit (BuiltinRenderTextureType.CurrentActive, screenBuffer);
-			//screenCopyCommandBuffer.CopyTexture (BuiltinRenderTextureType.CurrentActive, screenBuffer); //apparently faster than blit, doesn't work here, not the same format probably
-			ScaledCamera.Instance.cam.AddCommandBuffer (CameraEvent.AfterForwardOpaque, screenCopyCommandBuffer); //we should add or remove this when needed
+			scaledSceneBufferRenderer = new ScaledSceneBufferRenderer ();
+			scaledSceneBufferRenderer.Init ();
 
 			LoadConfigs ();
 		}
@@ -175,9 +167,29 @@ namespace Singularity
 				UnityEngine.Object.Destroy(singularityObject);
 			}
 
-			ScaledCamera.Instance.cam.RemoveCommandBuffer(CameraEvent.AfterForwardOpaque,screenCopyCommandBuffer);
 			screenBuffer.Release ();
-		}		
+
+			if (!ReferenceEquals(scaledSceneBufferRenderer,null))
+			{
+				scaledSceneBufferRenderer.Cleanup();
+			}
+		}
+
+		public void DisableSingularitiesForSceneBuffer()
+		{
+			foreach (SingularityObject singularityObject in loadedObjects)
+			{
+				singularityObject.DisableForSceneOrCubemap();
+			}
+		}
+
+		public void ReEnableSingularities()
+		{
+			foreach (SingularityObject singularityObject in loadedObjects)
+			{
+				singularityObject.ReEnable();
+			}
+		}
 	}
 }
 

@@ -297,13 +297,17 @@
 						// object on screen -> use screenColor if actually an object or galaxyColor
 						// object off screen -> use objectCubeMapColor if actually an object or galaxyColor
 						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor);
-						//screenColor = onScreen ? screenColor : ( onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor);
+
+						//if no distorsion -> no need to display aliased image, still need to check for accretion disk though
+						//color.a = (dot(normalize(originalRayDir),normalize(rayDirection)) >= 0.999999) ? 0.0 : color.a;
 					}
 					else
 					{
 						// below a certain altitude we just use the cubemap all the time because the heavy distorsion causes differences to be visible between the two
 						screenColor =  onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor;
 					}
+
+
 
 					color.rgb += (1.0 - color.rgb) * screenColor;
 				}			

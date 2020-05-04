@@ -49,7 +49,7 @@ namespace Singularity
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
 			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) / 0.00836f; // The radius (in scaled Space) at which the gravity no longer warps the image
-																   // Serves as the radius of our enclosing mesh, mostly trial and error
+																   // Serves as the radius of our enclosing mesh, determined by (mostly) trial and error
 
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 3005;
@@ -157,7 +157,7 @@ namespace Singularity
 
 			singularityCubeMap = singularityGO.AddComponent<SingularityCenteredCubeMap> ();
 			singularityCubeMap.singularityMaterial = singularityMaterial;
-			singularityCubeMap.singularityGO = singularityGO;
+			singularityCubeMap.parentSingularity = this;
 		}
 
 		public void Update()
@@ -170,6 +170,18 @@ namespace Singularity
 
 			singularityMaterial.SetColor("galaxyFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
 			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
+		}
+
+		// Disable rendering from our cubeMap (so no recursive rendering) or sceneBuffer
+		// Called from onWillRender, disabling MR or GO here will break rendering, so use layer
+		public void DisableForSceneOrCubemap()
+		{
+			singularityGO.layer = 0;
+		}
+
+		public void ReEnable()
+		{
+			singularityGO.layer = 10;
 		}
 
 		public void ApplyFromUI(ConfigNode _cn)

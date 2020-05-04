@@ -2,8 +2,8 @@
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Shaders\BlackHoleAccretionDisk.shader">
     <Files>
-      <File FileName="Assets\Scripts\BlackHole.cs" Line="56" Column="46" />
-      <File FileName="Assets\Shaders\BlackHoleAccretionDisk.shader" Line="279" Column="167" />
+      <File FileName="Assets\Scripts\BlackHole.cs" Line="1" Column="1" />
+      <File FileName="Assets\Shaders\BlackHoleAccretionDisk.shader" Line="255" Column="29" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
