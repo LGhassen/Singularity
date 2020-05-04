@@ -1,6 +1,15 @@
 using System;
-using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using System.Reflection;
+using System.Runtime;
+using KSP;
+using KSP.IO;
+using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Singularity
 {
@@ -21,6 +30,8 @@ namespace Singularity
 		[Persistent] public float accretionDiskInnerRadius = 1f;
 		[Persistent] public float accretionDiskOuterRadius = 5f;
 
+		[Persistent] public string wormholeTarget = "";
+
 		float scaledRadius = 1f;
 		float enclosingMeshRadius = 1f;
 
@@ -30,7 +41,10 @@ namespace Singularity
 		MeshRenderer scaledPlanetMeshRenderer;
 
 		GameObject singularityGO;
-		SingularityCenteredCubeMap singularityCubeMap;
+		public SingularityCenteredCubeMap singularityCubeMap;
+
+		bool hasWormhole = false;
+		SingularityCenteredCubeMap wormholeCubeMap;
 
 		public SingularityObject ()
 		{
@@ -79,7 +93,7 @@ namespace Singularity
 			singularityMaterial.SetTexture ("CubeMap", Singularity.Instance.galaxyCubemap);
 			singularityMaterial.SetTexture ("screenBuffer", Singularity.Instance.screenBuffer);
 
-			//TODO: if wormHole -> delay for a few frames then grab the renderCube of target singularity
+			StartCoroutine (SetupWormhole ());
 		}
 
 		void ConfigureAccretionDisk ()
@@ -160,6 +174,31 @@ namespace Singularity
 			singularityCubeMap.parentSingularity = this;
 		}
 
+		IEnumerator SetupWormhole()
+		{
+			yield return new WaitForFixedUpdate ();
+
+			singularityMaterial.DisableKeyword ("WORMHOLE_ON");
+			singularityMaterial.EnableKeyword ("WORMHOLE_OFF");
+			hasWormhole = false;
+
+			if (!String.IsNullOrEmpty (wormholeTarget))
+			{
+				SingularityObject wormholeTargetSingularity = Singularity.Instance.loadedObjects.SingleOrDefault (_so => _so.name == wormholeTarget);
+				
+				if (ReferenceEquals (wormholeTargetSingularity, null))
+				{
+					Utils.LogError ("Wormhole target not found, disabling");
+					yield break;
+				}
+				singularityMaterial.SetTexture ("wormholeCubemap", wormholeTargetSingularity.singularityCubeMap.singularityCubemap);
+				singularityMaterial.DisableKeyword ("WORMHOLE_OFF");
+				singularityMaterial.EnableKeyword ("WORMHOLE_ON");
+				wormholeCubeMap = wormholeTargetSingularity.singularityCubeMap;
+				hasWormhole = true;
+			}
+		}
+
 		public void Update()
 		{
 			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
@@ -182,6 +221,14 @@ namespace Singularity
 		public void ReEnable()
 		{
 			singularityGO.layer = 10;
+		}
+
+		public void UpdateTargetWormhole()
+		{
+			if (hasWormhole)
+			{
+				wormholeCubeMap.UpdateCubeMap();
+			}
 		}
 
 		public void ApplyFromUI(ConfigNode _cn)
@@ -215,6 +262,8 @@ namespace Singularity
 
 			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) / 0.00836f;
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
+
+			StartCoroutine (SetupWormhole ());
 		}
 
 		public void OnDestroy()

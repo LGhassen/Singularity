@@ -26,6 +26,8 @@
             #pragma multi_compile ACCRETION_DISK_OFF ACCRETION_DISK_ON
             #pragma multi_compile RADIAL_DISK_MAPPING_OFF RADIAL_DISK_MAPPING_ON
 
+            #pragma multi_compile WORMHOLE_OFF WORMHOLE_ON
+
             #include "UnityCG.cginc"
 
             #define ID_BLACKHOLE 0
@@ -43,6 +45,10 @@
 
 			uniform samplerCUBE CubeMap;		//galaxy cubemap
 			uniform samplerCUBE objectCubeMap;	//scaledSpace objects cubemap (no background)
+
+#if defined (WORMHOLE_ON)
+			uniform samplerCUBE wormholeCubemap;
+#endif
 
 			uniform float useScreenBuffer; 		//if we should use the screenBuffer, only for the main scaled camera
 
@@ -192,6 +198,8 @@
 				//float4 color = float4(0.0, 0.0, 0.0, 1.0);
 				float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
 
+				bool wormholeHit = false;
+
 #if defined (ACCRETION_DISK_ON)
 				//acretion disk base vectors
 				float3 base1 = normalize(cross(diskNormal, diskNormal.zxy)); //move this to plugin precomputation, check if 2nd vector is equal to first and re-change it
@@ -240,7 +248,11 @@
 #endif
 			  		  {
 			  		  //add && currentDistance <= rayDistance
+#if defined (WORMHOLE_ON)
+			  		    wormholeHit = true;
+#else
 			  		    break;
+#endif
 			  		  }
 			  		}
 
@@ -248,7 +260,7 @@
 					rayPosition += lightSpeed * stepSize * rayDirection;
 				}
 
-				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius )
+				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius && !wormholeHit)
 				{
 					//consider enabling/disabling mipMaps and texcube Bias (possibly negative, to strike balance between jittering and clarity
 					//maybe even a crisper image when the light is blueshifted
@@ -307,10 +319,19 @@
 						screenColor =  onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor;
 					}
 
-
-
 					color.rgb += (1.0 - color.rgb) * screenColor;
-				}			
+				}
+#if defined (WORMHOLE_ON)
+				else
+				{
+					float3 galaxyCubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz) * galaxyFadeColor;
+
+					float3 wormholeColor = texCUBE(wormholeCubemap,rayDirection);
+					bool onWormholeCubeMap = (wormholeColor.r != 0.0) && (wormholeColor.g != 0.0) && (wormholeColor.b != 0.0);
+
+					color.rgb =  onWormholeCubeMap ? wormholeColor : galaxyCubeMapColor;
+				}
+#endif
 
 				return color;
 			}

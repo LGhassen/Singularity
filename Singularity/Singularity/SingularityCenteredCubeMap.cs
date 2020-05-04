@@ -102,9 +102,9 @@ namespace Singularity
 				objectCamera.RenderToCubemap (singularityCubemap, updateMask);
 				parentSingularity.ReEnable();
 
-				//TODO: here notify target wormhole to update
-
 				cubeMapUpdated = true;
+
+				parentSingularity.UpdateTargetWormhole();
 			}
 		}
 

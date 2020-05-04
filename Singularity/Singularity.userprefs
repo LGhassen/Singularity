@@ -1,14 +1,16 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\SingularityCenteredCubeMap.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\SingularityObject.cs">
     <Files>
-      <File FileName="Singularity\SingularityCenteredCubeMap.cs" Line="103" Column="34" />
+      <File FileName="Singularity\SingularityCenteredCubeMap.cs" Line="19" Column="42" />
+      <File FileName="Singularity\SingularityObject.cs" Line="252" Column="38" />
+      <File FileName="Singularity\Singularity.cs" Line="64" Column="4" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="Singularity" expanded="True">
-            <Node name="SingularityCenteredCubeMap.cs" selected="True" />
+            <Node name="SingularityObject.cs" selected="True" />
           </Node>
         </State>
       </Pad>

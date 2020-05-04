@@ -31,7 +31,6 @@ namespace Singularity
 		public List<SingularityObject> loadedObjects = new List<SingularityObject>();
 		
 		public RenderTexture screenBuffer;
-		CommandBuffer screenCopyCommandBuffer;
 
 		public ScaledSceneBufferRenderer scaledSceneBufferRenderer;
 
