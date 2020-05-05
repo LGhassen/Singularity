@@ -18,7 +18,6 @@ namespace Singularity
 		[Persistent] public string name;
 		
 		[Persistent] public float gravity = 1f;
-		[Persistent] public float radius = 10f;
 
 		[Persistent] public bool hideCelestialBody = true;
 
@@ -59,11 +58,11 @@ namespace Singularity
 
 			singularityMaterial = new Material(Singularity.LoadedShaders ["Singularity/BlackHoleAccretionDisk"]);
 
-			scaledRadius = radius / 6000f;
+			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;			// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
-			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) / 0.00836f; // The radius (in scaled Space) at which the gravity no longer warps the image
-																   // Serves as the radius of our enclosing mesh, determined by (mostly) trial and error
+			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
+																   			// Serves as the radius of our enclosing mesh, value finetuned manually
 
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 3005;
@@ -241,7 +240,7 @@ namespace Singularity
 				return;
 			}
 
-			scaledRadius = radius / 6000f;
+			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
 			singularityMaterial.SetFloat("gravity", gravity);
@@ -260,7 +259,7 @@ namespace Singularity
 				UnHideCelestialBody();
 			}
 
-			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) / 0.00836f;
+			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 
 			StartCoroutine (SetupWormhole ());
