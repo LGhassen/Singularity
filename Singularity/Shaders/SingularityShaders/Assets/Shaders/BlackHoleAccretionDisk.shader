@@ -181,6 +181,31 @@
 			  }
 			}
 
+			// we check if object is on the screen buffer or not
+			inline bool onScreenBuffer(float3 position, float3 blackHoleOrigin, out float depth, out float3 screenColor)
+			{
+				float4 clipPos = UnityWorldToClipPos(float4(position,1.0));
+  				float4 screenPos = ComputeScreenPos(clipPos);
+  				screenPos.xyz/=screenPos.w;
+
+  				depth =  tex2D(_CameraDepthTexture, screenPos.xy);
+				screenColor = tex2D(screenBuffer,screenPos.xy);
+
+				float4 depthClipPos = float4(screenPos.xy, 1.0-depth, 1.0);
+    			depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
+
+				//position of the fragment we are getting from the screen texture
+				float4 camPos = mul(unity_CameraInvProjection, depthClipPos);
+				camPos.xyz /= camPos.w;
+				camPos.z *= -1;
+
+				float3 forward = mul((float3x3) unity_CameraToWorld, float3(0,0,1));
+				float screenBufferDistance = length(camPos.xyz);
+				bool behindBlackHole = (screenBufferDistance > length(_WorldSpaceCameraPos.xyz-blackHoleOrigin)) || (dot(blackHoleOrigin-_WorldSpaceCameraPos.xyz,forward) < 0.0 );
+
+				return(behindBlackHole && screenPos.x >= 0.0 && screenPos.x <= 1.0 && screenPos.y >= 0.0 && screenPos.y <= 1.0 && (dot(forward,position-_WorldSpaceCameraPos) > 0.0)) ; //idk why couldn't check with z
+			}
+
 			float4 raytrace(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
 			{				
 				float currentDistance = INFINITY;
@@ -194,8 +219,7 @@
 				float3 rayNextPosition = rayPosition;
 				
 				float3 originalRayDir = rayDirection;
-				
-				//float4 color = float4(0.0, 0.0, 0.0, 1.0);
+
 				float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
 
 				bool wormholeHit = false;
@@ -262,11 +286,9 @@
 
 				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius && !wormholeHit)
 				{
-					//consider enabling/disabling mipMaps and texcube Bias (possibly negative, to strike balance between jittering and clarity
-					//maybe even a crisper image when the light is blueshifted
+					//consider enabling/disabling mipMaps and texcube Bias (possibly negative, to strike balance between jittering and clarity, maybe even a crisper image when the light is blueshifted
 					float3 galaxyCubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz) * galaxyFadeColor;
 
-					//float3 infinityPos = rayPosition + rayDirection * INFINITY; //infinity = 1000000.0
 					float3 infinityPos = rayPosition + rayDirection * 2000.0; //we take an assumption here about the distance of a distinguishable object
 
 					float3 objectCubeMapDir = normalize(infinityPos - blackHoleOrigin); //is this even necessary?
@@ -275,39 +297,19 @@
 					//maybe in this case also do some blending over the last 0.05-0.1?
 					objectCubeMapColor*=galaxyFadeColor;
 
-					float3 screenColor =0.0;
+					float3 screenColor = 0.0;
 					bool onScreen = false;
 					float depth = 0.0;
 
 					if (useScreenBuffer == 1.0) //if should be fine since all units will be running the same branch I think, maybe make shader variant instead if in doubt?
 					{
-						float4 clipPos = UnityWorldToClipPos(float4(infinityPos,1.0));
-  						float4 screenPos = ComputeScreenPos(clipPos);
-  						screenPos.xyz/=screenPos.w;
-
-  						depth =  tex2D(_CameraDepthTexture, screenPos.xy);
-						screenColor = tex2D(screenBuffer,screenPos.xy);
-					
-						float4 depthClipPos = float4(screenPos.xy, 1.0-depth, 1.0);
-    					depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
-						//position of the fragment we are getting from the screen texture
-						float4 camPos = mul(unity_CameraInvProjection, depthClipPos);
-						camPos.xyz /= camPos.w;
-						camPos.z *= -1;
-
-						float3 forward = mul((float3x3) unity_CameraToWorld, float3(0,0,1));
-						float screenBufferDistance = length(camPos.xyz);
-						bool behindBlackHole = (screenBufferDistance > length(_WorldSpaceCameraPos.xyz-blackHoleOrigin)) || (dot(blackHoleOrigin-_WorldSpaceCameraPos.xyz,forward) < 0.0 ); //needs an added check to only apply this when black hole is not behind the Camera, otherwise return true?
-
-						// we check if object is on the screen buffer or not
-						onScreen = behindBlackHole && screenPos.x >= 0.0 && screenPos.x <= 1.0 && screenPos.y >= 0.0 && screenPos.y <= 1.0 && (dot(forward,infinityPos-_WorldSpaceCameraPos) > 0.0) ; //idk why couldn't check with z
+						onScreen = onScreenBuffer(infinityPos, blackHoleOrigin, depth, screenColor);
 					}
 
 					 //seems to be a good approach! remove if statements if possible
-					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius) //this needs to be changed to be in relationship to the enclosing mesh radius, or event Horizon radius
+					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius)
 					{
-						// object on screen -> use screenColor if actually an object or galaxyColor
-						// object off screen -> use objectCubeMapColor if actually an object or galaxyColor
+						// on screen -> use screenColor if actually an object or galaxyColor, object off screen -> use objectCubeMapColor if actually an object or galaxyColor
 						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor);
 
 						//if no distorsion -> no need to display aliased image, still need to check for accretion disk though
@@ -332,7 +334,6 @@
 					color.rgb =  onWormholeCubeMap ? wormholeColor : galaxyCubeMapColor;
 				}
 #endif
-
 				return color;
 			}
 
