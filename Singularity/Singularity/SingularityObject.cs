@@ -22,14 +22,16 @@ namespace Singularity
 		[Persistent] public bool hideCelestialBody = true;
 
 		[Persistent] public bool useAccretionDisk = false;
-		[Persistent] public string accretionDiskTexturePath = "";
 		[Persistent] public bool useRadialTextureMapping = false;
 		
 		[Persistent] public Vector3 accretionDiskNormal = Vector3.up;
 		[Persistent] public float accretionDiskInnerRadius = 1f;
 		[Persistent] public float accretionDiskOuterRadius = 5f;
-
+		
 		[Persistent] public string wormholeTarget = "";
+		[Persistent] public string accretionDiskTexturePath = "";
+
+		[Persistent] public float scaleEnclosingMesh = 1f;
 
 		float scaledRadius = 1f;
 		float enclosingMeshRadius = 1f;
@@ -61,16 +63,13 @@ namespace Singularity
 			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;			// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
-			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
+			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
 																   			// Serves as the radius of our enclosing mesh, value finetuned manually
 
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 3005;
 
-			if (useAccretionDisk)
-			{
-				ConfigureAccretionDisk ();
-			}
+			ConfigureAccretionDisk ();
 
 			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
 
@@ -97,39 +96,47 @@ namespace Singularity
 
 		void ConfigureAccretionDisk ()
 		{
-			if (String.IsNullOrEmpty (accretionDiskTexturePath))
-			{
-				Utils.LogError ("Accretion disk enabled but no accretion disk texture, disabling accretion disk");
-				useAccretionDisk = false;
-				return;
-			}
+			singularityMaterial.DisableKeyword ("ACCRETION_DISK_ON");
+			singularityMaterial.EnableKeyword ("ACCRETION_DISK_OFF");
 
-			if (!System.IO.File.Exists (Singularity.Instance.GameDataPath + accretionDiskTexturePath))
+			if (useAccretionDisk)
 			{
-				Utils.LogError ("Accretion disk enabled but texture can't be located at: "+accretionDiskTexturePath+", disabling accretion disk");
-				useAccretionDisk = false;
-				return;
-			}
+				if (String.IsNullOrEmpty (accretionDiskTexturePath))
+				{
+					Utils.LogError ("Accretion disk enabled but no accretion disk texture, disabling accretion disk");
+					useAccretionDisk = false;
+					return;
+				}
+				
+				if (!System.IO.File.Exists (Singularity.Instance.GameDataPath + accretionDiskTexturePath))
+				{
+					Utils.LogError ("Accretion disk enabled but texture can't be located at: " + accretionDiskTexturePath + ", disabling accretion disk");
+					useAccretionDisk = false;
+					return;
+				}
+				
+				AccretionDiskTexture = new Texture2D (1, 1);
+				AccretionDiskTexture.LoadImage (System.IO.File.ReadAllBytes (Singularity.Instance.GameDataPath + accretionDiskTexturePath));
+				AccretionDiskTexture.wrapMode = TextureWrapMode.Repeat;
+				singularityMaterial.SetTexture ("AccretionDisk", AccretionDiskTexture);
+				
+				if (useRadialTextureMapping)
+				{
+					singularityMaterial.DisableKeyword ("RADIAL_DISK_MAPPING_OFF");
+					singularityMaterial.EnableKeyword ("RADIAL_DISK_MAPPING_ON");
+				} else
+				{
+					singularityMaterial.DisableKeyword ("RADIAL_DISK_MAPPING_ON");
+					singularityMaterial.EnableKeyword ("RADIAL_DISK_MAPPING_OFF");
+				}
 
-			AccretionDiskTexture = new Texture2D (1, 1);
-			AccretionDiskTexture.LoadImage (System.IO.File.ReadAllBytes (Singularity.Instance.GameDataPath + accretionDiskTexturePath));
-			AccretionDiskTexture.wrapMode = TextureWrapMode.Repeat;
-			singularityMaterial.SetTexture ("AccretionDisk", AccretionDiskTexture);
-
-			if (useRadialTextureMapping)
-			{
-				singularityMaterial.DisableKeyword ("RADIAL_DISK_MAPPING_OFF");
-				singularityMaterial.EnableKeyword ("RADIAL_DISK_MAPPING_ON");
+				singularityMaterial.SetVector ("diskNormal", accretionDiskNormal);
+				singularityMaterial.SetFloat ("diskInnerRadius", accretionDiskInnerRadius / 6000f); //change to scaledSpace scale
+				singularityMaterial.SetFloat ("diskOuterRadius", accretionDiskOuterRadius / 6000f);
+				
+				singularityMaterial.DisableKeyword ("ACCRETION_DISK_OFF");
+				singularityMaterial.EnableKeyword ("ACCRETION_DISK_ON");
 			}
-			else
-			{
-				singularityMaterial.DisableKeyword ("RADIAL_DISK_MAPPING_ON");
-				singularityMaterial.EnableKeyword ("RADIAL_DISK_MAPPING_OFF");
-			}
-
-			singularityMaterial.SetVector ("diskNormal", accretionDiskNormal);
-			singularityMaterial.SetFloat ("diskInnerRadius", accretionDiskInnerRadius / 6000f); //change to scaledSpace scale
-			singularityMaterial.SetFloat ("diskOuterRadius", accretionDiskOuterRadius / 6000f);
 		}
 
 		void HideCelestialBody ()
@@ -244,11 +251,8 @@ namespace Singularity
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
 			singularityMaterial.SetFloat("gravity", gravity);
-			
-			if (useAccretionDisk)
-			{
-				ConfigureAccretionDisk ();
-			}
+
+			ConfigureAccretionDisk ();
 			
 			if (hideCelestialBody)
 			{
@@ -259,7 +263,7 @@ namespace Singularity
 				UnHideCelestialBody();
 			}
 
-			enclosingMeshRadius = Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
+			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 
 			StartCoroutine (SetupWormhole ());

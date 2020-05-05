@@ -87,9 +87,10 @@
 			float3 accretionDiskColor(float3 pos, float3 base1, float3 base2, float3 blackHoleOrigin)
 			{
 
+				pos = pos - blackHoleOrigin;
+
 #if defined (RADIAL_DISK_MAPPING_ON)
 				//TODO: make this rotate, move TWOPI to defines
-				pos = pos - blackHoleOrigin;
 				float dist = length(pos);
 
 				// Important! Scale radii according to black hole
