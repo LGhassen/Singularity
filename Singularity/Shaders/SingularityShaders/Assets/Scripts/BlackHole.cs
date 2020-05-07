@@ -39,6 +39,9 @@ public class BlackHole : MonoBehaviour
 	[SerializeField]
 	float DiskOuterRadius;
 
+	[SerializeField]
+	float rotationSpeed;
+
 	RenderTexture screenBuffer;
 	CommandBuffer screenCopyCommandBuffer;
 
@@ -106,6 +109,16 @@ public class BlackHole : MonoBehaviour
 			blackHoleMaterial.DisableKeyword ("ACCRETION_DISK_ON");
 			blackHoleMaterial.EnableKeyword ("ACCRETION_DISK_OFF");
 		}
+
+		blackHoleMaterial.DisableKeyword ("GALAXYCUBEMAPONLY_OFF");
+		blackHoleMaterial.EnableKeyword ("GALAXYCUBEMAPONLY_ON");
+
+		blackHoleMaterial.DisableKeyword ("WORMHOLE_ON");
+		blackHoleMaterial.EnableKeyword ("WORMHOLE_OFF");
+
+		blackHoleMaterial.SetFloat("universalTime", Time.time);
+		blackHoleMaterial.SetFloat("rotationSpeed", rotationSpeed * (Mathf.PI * 2f) / 60f);
+
 
 		//sceneCam.transform.LookAt(gameObject.transform);
 		//sceneCam.transform.position = Vector3.Lerp(sceneCam.transform.position,gameObject.transform.position,0.2f*Mathf.Cos(0.4f*Time.time));

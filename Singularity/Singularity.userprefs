@@ -1,10 +1,11 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" PreferredExecutionTarget="MonoDevelop.Default" />
   <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\SingularityObject.cs">
     <Files>
-      <File FileName="Singularity\SingularityCenteredCubeMap.cs" Line="19" Column="42" />
-      <File FileName="Singularity\SingularityObject.cs" Line="252" Column="38" />
-      <File FileName="Singularity\Singularity.cs" Line="64" Column="4" />
+      <File FileName="Singularity\ScaledSceneBufferRenderer.cs" Line="54" Column="16" />
+      <File FileName="Singularity\SingularityCenteredCubeMap.cs" Line="25" Column="31" />
+      <File FileName="Singularity\SingularityObject.cs" Line="223" Column="48" />
+      <File FileName="Singularity\Singularity.cs" Line="197" Column="23" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">

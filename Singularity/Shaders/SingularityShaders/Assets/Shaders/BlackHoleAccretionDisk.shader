@@ -28,6 +28,8 @@
 
             #pragma multi_compile WORMHOLE_OFF WORMHOLE_ON
 
+            #pragma multi_compile GALAXYCUBEMAPONLY_OFF GALAXYCUBEMAPONLY_ON
+
             #include "UnityCG.cginc"
 
             #define ID_BLACKHOLE 0
@@ -61,6 +63,9 @@
 			uniform float diskInnerRadius;
 			uniform float diskOuterRadius;
 
+			uniform float rotationSpeed;
+			uniform float universalTime;
+
             struct appdata
             {
                 float4 vertex : POSITION;
@@ -91,6 +96,7 @@
 
 #if defined (RADIAL_DISK_MAPPING_ON)
 				//TODO: make this rotate, move TWOPI to defines
+				//need to rotate base1 and base2?
 				float dist = length(pos);
 
 				// Important! Scale radii according to black hole
@@ -99,6 +105,7 @@
 //			    float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
 				float angle = acos(dot(normalize(base1), normalize(pos)));
 				if (dot(cross(base1, pos), diskNormal) < 0.0) angle = -angle;
+				angle-= universalTime * rotationSpeed;
 
 				float u = 0.5 - angle / TWOPI;
 
@@ -110,8 +117,11 @@
 				float2 UV = float2(u,v);
 
 				//can simplify these and move them out of this loop
-				float sinX = sin ( -_Time.y * 3 );
-            	float cosX = cos ( -_Time.y * 3 );
+//				float sinX = sin ( -_Time.y * rotationSpeed );
+//            	float cosX = cos ( -_Time.y * rotationSpeed );
+
+				float sinX = sin ( universalTime * rotationSpeed );
+            	float cosX = cos ( universalTime * rotationSpeed );
 
 				float2x2 rotationMatrix = float2x2( cosX, -sinX, sinX, cosX);
 				UV = mul(rotationMatrix, UV);
@@ -291,11 +301,12 @@
 					//consider enabling/disabling mipMaps and texcube Bias (possibly negative, to strike balance between jittering and clarity, maybe even a crisper image when the light is blueshifted
 					float3 galaxyCubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz) * galaxyFadeColor;
 
+#if defined (GALAXYCUBEMAPONLY_OFF)
 					float3 infinityPos = rayPosition + rayDirection * 2000.0; //we take an assumption here about the distance of a distinguishable object
 
 					float3 objectCubeMapDir = normalize(infinityPos - blackHoleOrigin); //is this even necessary?
 					float4 objectCubeMapColor = texCUBE(objectCubeMap,objectCubeMapDir);
-					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) || (objectCubeMapColor.g != 0.0) || (objectCubeMapColor.b != 0.0) || (objectCubeMapColor.a != 0.0); // we check if the objectCubeMap has the object
+					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) || (objectCubeMapColor.g != 0.0) || (objectCubeMapColor.b != 0.0) || (objectCubeMapColor.a != 0.0); // check if the objectCubeMap has the object
 					//maybe in this case also do some blending over the last 0.05-0.1?
 					objectCubeMapColor.rgb*=galaxyFadeColor;
 
@@ -308,14 +319,10 @@
 						onScreen = onScreenBuffer(infinityPos, blackHoleOrigin, depth, screenColor);
 					}
 
-					 //seems to be a good approach! remove if statements if possible
 					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius)
 					{
 						// on screen -> use screenColor if actually an object or galaxyColor, object off screen -> use objectCubeMapColor if actually an object or galaxyColor
 						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor.rgb : galaxyCubeMapColor);
-
-						//if no distorsion -> no need to display aliased image, still need to check for accretion disk though
-						//color.a = (dot(normalize(originalRayDir),normalize(rayDirection)) >= 0.999999) ? 0.0 : color.a;
 					}
 					else
 					{
@@ -324,6 +331,9 @@
 					}
 
 					color.rgb += (1.0 - color.rgb) * screenColor;
+#else
+					color.rgb += (1.0 - color.rgb) * galaxyCubeMapColor;
+#endif
 				}
 #if defined (WORMHOLE_ON)
 				else

@@ -34,6 +34,8 @@ namespace Singularity
 
 		public ScaledSceneBufferRenderer scaledSceneBufferRenderer;
 
+		double initialUniversalTime;
+
 		public Singularity ()
 		{
 			if (instance == null)
@@ -84,6 +86,8 @@ namespace Singularity
 
 			scaledSceneBufferRenderer = new ScaledSceneBufferRenderer ();
 			scaledSceneBufferRenderer.Init ();
+
+			initialUniversalTime = Planetarium.GetUniversalTime ();
 
 			LoadConfigs ();
 		}
@@ -188,6 +192,13 @@ namespace Singularity
 			{
 				singularityObject.ReEnable();
 			}
+		}
+
+		// universal time is a large double, if we pass it to the shader directly as a float we lose enough precision that things look like they run at lower fps
+		// pass the offset from an initial value as float
+		public float getTime()
+		{
+			return (float)(Planetarium.GetUniversalTime () - initialUniversalTime);
 		}
 	}
 }

@@ -432,6 +432,7 @@ MonoBehaviour:
   DiskNormal: {x: 0, y: 1, z: 0}
   DiskInnerRadius: 5
   DiskOuterRadius: 50
+  rotationSpeed: -3
   sensitivity: 1000
 --- !u!23 &1903724466
 MeshRenderer:

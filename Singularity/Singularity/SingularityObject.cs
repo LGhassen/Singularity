@@ -27,6 +27,8 @@ namespace Singularity
 		[Persistent] public Vector3 accretionDiskNormal = Vector3.up;
 		[Persistent] public float accretionDiskInnerRadius = 1f;
 		[Persistent] public float accretionDiskOuterRadius = 5f;
+
+		[Persistent] public float accretionDiskRotationSpeed = 60f;
 		
 		[Persistent] public string wormholeTarget = "";
 		[Persistent] public string accretionDiskTexturePath = "";
@@ -69,9 +71,13 @@ namespace Singularity
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
 
+			singularityMaterial.EnableKeyword ("GALAXYCUBEMAPONLY_OFF");
+			singularityMaterial.DisableKeyword ("GALAXYCUBEMAPONLY_ON");
+
 			ConfigureAccretionDisk ();
 
 			scaledPlanetMeshRenderer = gameObject.GetComponent<MeshRenderer> ();
+
 
 //			// When not hiding the celestialBody, objects write to depth buffer which messes up the lensing, try to disable it through renderType Tags
 //			// But it's not just the depth, we also need to disable the actual object when pre-rendering the screen
@@ -133,7 +139,10 @@ namespace Singularity
 				singularityMaterial.SetVector ("diskNormal", accretionDiskNormal);
 				singularityMaterial.SetFloat ("diskInnerRadius", accretionDiskInnerRadius / 6000f); //change to scaledSpace scale
 				singularityMaterial.SetFloat ("diskOuterRadius", accretionDiskOuterRadius / 6000f);
-				
+
+				//convert from RPM to rad/s
+				singularityMaterial.SetFloat("rotationSpeed", accretionDiskRotationSpeed * (Mathf.PI * 2) / 60);
+
 				singularityMaterial.DisableKeyword ("ACCRETION_DISK_OFF");
 				singularityMaterial.EnableKeyword ("ACCRETION_DISK_ON");
 			}
@@ -213,6 +222,9 @@ namespace Singularity
 
 			singularityMaterial.SetColor("galaxyFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
 			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
+
+			if (useAccretionDisk)
+				singularityMaterial.SetFloat ("universalTime", Singularity.Instance.getTime ());
 		}
 
 		// Disable rendering from our cubeMap (so no recursive rendering) or sceneBuffer
