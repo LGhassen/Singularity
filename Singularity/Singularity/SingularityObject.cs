@@ -123,7 +123,7 @@ namespace Singularity
 				
 				AccretionDiskTexture = new Texture2D (1, 1);
 				AccretionDiskTexture.LoadImage (System.IO.File.ReadAllBytes (Singularity.Instance.GameDataPath + accretionDiskTexturePath));
-				AccretionDiskTexture.wrapMode = TextureWrapMode.Clamp;
+				AccretionDiskTexture.wrapMode = useRadialTextureMapping ? TextureWrapMode.Repeat : TextureWrapMode.Clamp;
 				singularityMaterial.SetTexture ("AccretionDisk", AccretionDiskTexture);
 				
 				if (useRadialTextureMapping)

@@ -61,7 +61,7 @@ namespace Singularity
 		{
 			if (uiVisible)
 			{
-				windowRect = GUILayout.Window (windowId, windowRect, DrawWindow,"Singularity 0.1");
+				windowRect = GUILayout.Window (windowId, windowRect, DrawWindow,"Singularity 1.0");
 				
 				//prevent window from going offscreen
 				windowRect.x = Mathf.Clamp(windowRect.x,0,Screen.width-windowRect.width);

@@ -46,7 +46,7 @@ namespace Singularity
 			objectCamera.transform.position = gameObject.transform.position;
 			objectCamera.transform.parent = gameObject.transform;
 
-			singularityCubemap = new RenderTexture(2048, 2048, 16, RenderTextureFormat.ARGB32, 9);
+			singularityCubemap = new RenderTexture(Singularity.Instance.objectCubemapResolution, Singularity.Instance.objectCubemapResolution, 16, RenderTextureFormat.ARGB32, 9);
 			singularityCubemap.dimension = UnityEngine.Rendering.TextureDimension.Cube;
 			singularityCubemap.autoGenerateMips = true;
 			singularityCubemap.filterMode = FilterMode.Trilinear;

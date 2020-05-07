@@ -422,16 +422,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blackHoleMaterial: {fileID: 2100000, guid: 470a24f0532c6e047a92e15c07da4ec8, type: 2}
-  accretionDisk: {fileID: 2800000, guid: 1f34dec23640cc943b0d4ff8e0fc10ac, type: 3}
-  radialAccretionDisk: {fileID: 2800000, guid: 8db2bdad5ddd8454fab0810be16579b3, type: 3}
+  accretionDisk: {fileID: 2800000, guid: 80fdd3ae6b074f248ab452e8f0a578a7, type: 3}
+  radialAccretionDisk: {fileID: 2800000, guid: f7708f0a4c4ca274495fc2d4927e00ca, type: 3}
   useAccretionDisk: 1
   radialMapping: 0
   radius: 2.1
   gravity: 0.2
   sceneCam: {fileID: 1078875522}
   DiskNormal: {x: 0, y: 1, z: 0}
-  DiskInnerRadius: 5
-  DiskOuterRadius: 50
+  DiskInnerRadius: 0
+  DiskOuterRadius: 20
   rotationSpeed: -3
   sensitivity: 1000
 --- !u!23 &1903724466

@@ -36,6 +36,9 @@ namespace Singularity
 
 		double initialUniversalTime;
 
+		[Persistent] public int galaxyCubemapResolution = 2048;
+		[Persistent] public int objectCubemapResolution = 2048;
+
 		public Singularity ()
 		{
 			if (instance == null)
@@ -78,6 +81,8 @@ namespace Singularity
 
 		void Init()
 		{
+			LoadGeneralSettings ();
+
 			SetupCubemap ();
 
 			screenBuffer = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, 9);
@@ -89,7 +94,7 @@ namespace Singularity
 
 			initialUniversalTime = Planetarium.GetUniversalTime ();
 
-			LoadConfigs ();
+			LoadSingularities ();
 		}
 
 		void SetupCubemap()
@@ -117,12 +122,27 @@ namespace Singularity
 				Utils.LogError("Couldn't setup galaxy cubeMap correctly, Exception thrown: "+E.ToString());
 			}
 			
-			galaxyCubemap = new Cubemap (2048, TextureFormat.ARGB32, 9); //add switch for controllable RES?
+			galaxyCubemap = new Cubemap (galaxyCubemapResolution, TextureFormat.ARGB32, 9);
 			ScaledCamera.Instance.galaxyCamera.RenderToCubemap (galaxyCubemap);
 			Utils.LogInfo ("GalaxyCubemap initialized");
 		}
 
-		void LoadConfigs()
+		void LoadGeneralSettings()
+		{
+			UrlDir.UrlConfig[] configs = GameDatabase.Instance.GetConfigs ("Singularity");
+			foreach (UrlDir.UrlConfig _url in configs)
+			{
+				ConfigNode[] configNodeArray = _url.config.GetNodes ("Singularity_config");
+				if (configNodeArray.Length > 0)
+				{
+					ConfigNode.LoadObjectFromConfig (this, configNodeArray [0]);			
+					Utils.LogInfo ("Config loaded, resolutions: galaxyCubemapResolution=" + galaxyCubemapResolution.ToString () + ", objectCubemapResolution=" + objectCubemapResolution.ToString ());
+					return;
+				}
+			}
+		}
+
+		void LoadSingularities()
 		{
 			UrlDir.UrlConfig[] configs = GameDatabase.Instance.GetConfigs ("Singularity");
 

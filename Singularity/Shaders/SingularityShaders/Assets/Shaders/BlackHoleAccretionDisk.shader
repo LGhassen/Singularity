@@ -99,7 +99,6 @@
 				//need to rotate base1 and base2?
 				float dist = length(pos);
 
-				// Important! Scale radii according to black hole
 				float v = clamp((dist - diskInnerRadius) / (diskOuterRadius - diskInnerRadius), 0.0, 1.0);
 
 //			    float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
