@@ -221,7 +221,8 @@
 				
 				float3 originalRayDir = rayDirection;
 
-				float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
+				//float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
+				float4 color = float4(0.0, 0.0, 0.0, 1.0);
 
 				bool wormholeHit = false;
 
@@ -293,10 +294,10 @@
 					float3 infinityPos = rayPosition + rayDirection * 2000.0; //we take an assumption here about the distance of a distinguishable object
 
 					float3 objectCubeMapDir = normalize(infinityPos - blackHoleOrigin); //is this even necessary?
-					float3 objectCubeMapColor = texCUBE(objectCubeMap,objectCubeMapDir);
-					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) && (objectCubeMapColor.g != 0.0) && (objectCubeMapColor.b != 0.0); // we check if the objectCubeMap has the object
+					float4 objectCubeMapColor = texCUBE(objectCubeMap,objectCubeMapDir);
+					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) || (objectCubeMapColor.g != 0.0) || (objectCubeMapColor.b != 0.0) || (objectCubeMapColor.a != 0.0); // we check if the objectCubeMap has the object
 					//maybe in this case also do some blending over the last 0.05-0.1?
-					objectCubeMapColor*=galaxyFadeColor;
+					objectCubeMapColor.rgb*=galaxyFadeColor;
 
 					float3 screenColor = 0.0;
 					bool onScreen = false;
@@ -311,7 +312,7 @@
 					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius)
 					{
 						// on screen -> use screenColor if actually an object or galaxyColor, object off screen -> use objectCubeMapColor if actually an object or galaxyColor
-						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor);
+						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor.rgb : galaxyCubeMapColor);
 
 						//if no distorsion -> no need to display aliased image, still need to check for accretion disk though
 						//color.a = (dot(normalize(originalRayDir),normalize(rayDirection)) >= 0.999999) ? 0.0 : color.a;
@@ -319,7 +320,7 @@
 					else
 					{
 						// below a certain altitude we just use the cubemap all the time because the heavy distorsion causes differences to be visible between the two
-						screenColor =  onObjectCubeMap ? objectCubeMapColor : galaxyCubeMapColor;
+						screenColor =  onObjectCubeMap ? objectCubeMapColor.rgb : galaxyCubeMapColor;
 					}
 
 					color.rgb += (1.0 - color.rgb) * screenColor;
@@ -329,10 +330,10 @@
 				{
 					float3 galaxyCubeMapColor = texCUBE(CubeMap, mul(cubeMapRotation,float4(rayDirection,1.0)).xyz) * galaxyFadeColor;
 
-					float3 wormholeColor = texCUBE(wormholeCubemap,rayDirection);
-					bool onWormholeCubeMap = (wormholeColor.r != 0.0) && (wormholeColor.g != 0.0) && (wormholeColor.b != 0.0);
+					float4 wormholeColor = texCUBE(wormholeCubemap,rayDirection);
+					bool onWormholeCubeMap = (wormholeColor.r != 0.0) || (wormholeColor.g != 0.0) || (wormholeColor.b != 0.0) || (wormholeColor.a != 0.0);
 
-					color.rgb =  onWormholeCubeMap ? wormholeColor : galaxyCubeMapColor;
+					color.rgb =  onWormholeCubeMap ? wormholeColor.rgb : galaxyCubeMapColor;
 				}
 #endif
 				return color;

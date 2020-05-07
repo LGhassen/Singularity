@@ -40,7 +40,7 @@ namespace Singularity
 			objectCamera.nearClipPlane = ScaledCamera.Instance.cam.nearClipPlane;
 
 			objectCamera.clearFlags = CameraClearFlags.Color;
-			objectCamera.backgroundColor = Color.black;
+			objectCamera.backgroundColor = Color.clear;
 			objectCamera.enabled = false;
 
 			objectCamera.transform.position = gameObject.transform.position;

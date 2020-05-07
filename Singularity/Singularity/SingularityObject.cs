@@ -67,7 +67,7 @@ namespace Singularity
 																   			// Serves as the radius of our enclosing mesh, value finetuned manually
 
 			singularityMaterial.SetFloat("gravity", gravity);
-			singularityMaterial.renderQueue = 3005;
+			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
 
 			ConfigureAccretionDisk ();
 
@@ -117,7 +117,7 @@ namespace Singularity
 				
 				AccretionDiskTexture = new Texture2D (1, 1);
 				AccretionDiskTexture.LoadImage (System.IO.File.ReadAllBytes (Singularity.Instance.GameDataPath + accretionDiskTexturePath));
-				AccretionDiskTexture.wrapMode = TextureWrapMode.Repeat;
+				AccretionDiskTexture.wrapMode = TextureWrapMode.Clamp;
 				singularityMaterial.SetTexture ("AccretionDisk", AccretionDiskTexture);
 				
 				if (useRadialTextureMapping)
@@ -207,9 +207,7 @@ namespace Singularity
 
 		public void Update()
 		{
-			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
-
-			// Is this needed eevery frame?
+			// Is this needed every frame?
 			if (hideCelestialBody)
 				HideCelestialBody ();
 
