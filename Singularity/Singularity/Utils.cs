@@ -71,7 +71,8 @@ namespace Singularity
 			for (int i = 0; i < node.values.Count; i++)
 			{
 				ConfigNode.Value item = node.values[i];
-				builder.AppendLine(string.Concat(item.name, " = ", item.value));
+				//builder.AppendLine(string.Concat(item.name, " = ", item.value));
+				builder.Append(string.Concat(item.name, " = ", item.value, "\n")); //not sure why but the default newLine character messes up the parsing
 			}
 			for (int j = 0; j < node.nodes.Count; j++)
 			{
@@ -88,13 +89,15 @@ namespace Singularity
 			for (int i = 0; i < node.values.Count; i++)
 			{
 				ConfigNode.Value item = node.values[i];
-				builder.AppendLine(string.Concat(str, item.name, " = ", item.value));
+				//builder.AppendLine(string.Concat(str, item.name, " = ", item.value));
+				builder.Append(string.Concat(str, item.name, " = ", item.value, "\n"));
 			}
 			for (int j = 0; j < node.nodes.Count; j++)
 			{
 				WriteNodeString(node, ref builder, str);
 			}
-			builder.AppendLine(string.Concat(indent, "}"));
+			//builder.AppendLine(string.Concat(indent, "}"));
+			builder.AppendLine(string.Concat(indent, "}", "\n"));
 		}
 		
 		public static char[] delimiters = new char[4]
