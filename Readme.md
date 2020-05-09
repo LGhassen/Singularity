@@ -11,3 +11,5 @@ Other possible uses include wormholes, stars with gravitational lensing, “whit
 
 This is not a physically correct simulation. The idea is relatively sound, and the force exerted by gravity fades by the square of the distance, but no real physical equations or constants are used.
 The shader is based on Pim Schreurs’ Interstellar simulation.
+
+Forum thread: https://forum.kerbalspaceprogram.com/index.php?/topic/193709-wip18x-19x-singularity-black-hole-shaders/
