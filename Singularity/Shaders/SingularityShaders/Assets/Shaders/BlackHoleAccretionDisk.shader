@@ -1,38 +1,38 @@
 ﻿Shader "Singularity/BlackHoleAccretionDisk"
 {
-    Properties
-    {
-        CubeMap ("Cubemap", CUBE) = "" {}
-        //AccretionDisk ("AccretionDisk", 2D) = "white" {} 
-    }
-    SubShader
-    {
-			Tags {"QUEUE"="Geometry+1" "IgnoreProjector"="True" "RenderType"="Transparent"}
+	Properties
+	{
+		CubeMap ("Cubemap", CUBE) = "" {}
+		//AccretionDisk ("AccretionDisk", 2D) = "white" {} 
+	}
+	SubShader
+	{
+		Tags {"QUEUE"="Geometry+1" "IgnoreProjector"="True" "RenderType"="Transparent"}
 
-    	 	ZWrite On
-    	 	ZTest On
-    	 	cull Front
-    	 
-    		Blend SrcAlpha OneMinusSrcAlpha
+		 ZWrite On
+		 ZTest On
+		 cull Front
+		 
+		Blend SrcAlpha OneMinusSrcAlpha
 
-        Pass
-        {
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_fog
-            #pragma target 3.0
+		Pass
+		{
+			CGPROGRAM
+			#pragma vertex vert
+			#pragma fragment frag
+			#pragma multi_compile_fog
+			#pragma target 3.0
 
-            #pragma multi_compile ACCRETION_DISK_OFF ACCRETION_DISK_ON
-            #pragma multi_compile RADIAL_DISK_MAPPING_OFF RADIAL_DISK_MAPPING_ON
+			#pragma multi_compile ACCRETION_DISK_OFF ACCRETION_DISK_ON
+			#pragma multi_compile RADIAL_DISK_MAPPING_OFF RADIAL_DISK_MAPPING_ON
 
-            #pragma multi_compile WORMHOLE_OFF WORMHOLE_ON
+			#pragma multi_compile WORMHOLE_OFF WORMHOLE_ON
 
-            #pragma multi_compile GALAXYCUBEMAPONLY_OFF GALAXYCUBEMAPONLY_ON
+			#pragma multi_compile GALAXYCUBEMAPONLY_OFF GALAXYCUBEMAPONLY_ON
 
-            #include "UnityCG.cginc"
+			#include "UnityCG.cginc"
 
-            #define ID_BLACKHOLE 0
+			#define ID_BLACKHOLE 0
 			#define ID_BLACKHOLE_DISK 1
 
 			#define INFINITY 1000000.0
@@ -66,27 +66,26 @@
 			uniform float rotationSpeed;
 			uniform float universalTime;
 
-            struct appdata
-            {
-                float4 vertex : POSITION;
-            };
+			struct appdata
+			{
+			float4 vertex : POSITION;
+			};
 
-            struct v2f
-            {
-                float4 vertex  : SV_POSITION;
-                float4 worldPos : TEXCOORD0;
-                float4 blackHoleOrigin : TEXCOORD1;
+			struct v2f
+			{
+				float4 vertex  : SV_POSITION;
+				float4 worldPos : TEXCOORD0;
+				float4 blackHoleOrigin : TEXCOORD1;
+			};
 
-            };
-
-            v2f vert (appdata v)
-            {
-                v2f o;
-                o.vertex = UnityObjectToClipPos(v.vertex);
-                o.worldPos = mul(unity_ObjectToWorld, v.vertex);
-                o.blackHoleOrigin = mul(unity_ObjectToWorld, float4(0,0,0,1));
-                return o;
-            }
+			v2f vert (appdata v)
+			{
+				v2f o;
+				o.vertex = UnityObjectToClipPos(v.vertex);
+				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
+				o.blackHoleOrigin = mul(unity_ObjectToWorld, float4(0,0,0,1));
+				return o;
+			}
 
 
 			float3 accretionDiskColor(float3 pos, float3 base1, float3 base2, float3 blackHoleOrigin)
@@ -101,7 +100,7 @@
 
 				float v = clamp((dist - diskInnerRadius) / (diskOuterRadius - diskInnerRadius), 0.0, 1.0);
 
-//			    float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
+//				float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
 				float angle = acos(dot(normalize(base1), normalize(pos)));
 				if (dot(cross(base1, pos), diskNormal) < 0.0) angle = -angle;
 				angle-= universalTime * rotationSpeed;
@@ -117,10 +116,10 @@
 
 				//can simplify these and move them out of this loop
 //				float sinX = sin ( -_Time.y * rotationSpeed );
-//            	float cosX = cos ( -_Time.y * rotationSpeed );
+//				float cosX = cos ( -_Time.y * rotationSpeed );
 
 				float sinX = sin ( universalTime * rotationSpeed );
-            	float cosX = cos ( universalTime * rotationSpeed );
+				float cosX = cos ( universalTime * rotationSpeed );
 
 				float2x2 rotationMatrix = float2x2( cosX, -sinX, sinX, cosX);
 				UV = mul(rotationMatrix, UV);
@@ -148,47 +147,47 @@
 			//simplify this?
 			void testDistance(int i, float distance, inout float currentDistance, inout int currentObject, float maxDistance)
 			{
-			  float EPSILON = 0.0001;
+				float EPSILON = 0.0001;
 
-			  if (distance >= EPSILON && distance < currentDistance && distance < maxDistance)
-			  {
-			    currentDistance = distance;
-			    currentObject = i;
-			  }
+				if (distance >= EPSILON && distance < currentDistance && distance < maxDistance)
+			  	{
+					currentDistance = distance;
+					currentObject = i;
+			  	}
 			}
 
 			// inigo quilez plane intersect, saves like 15% performance on the whole shader
 			// plane designed by p (p.xyz must be normalized)
 			float plaIntersect( float3 ro, float3 rd, float3 p )
 			{
-    			return -(dot(ro,p))/dot(rd,p);
+				return -(dot(ro,p))/dot(rd,p);
 			}
 
 			//original ringIntersect function, overly complicated and slow
 			inline float ringDistance(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
 			{
-			  float EPSILON = 0.0001;
+				float EPSILON = 0.0001;
 
-			  float denominator = dot(rayDirection, diskNormal);
-			  float constant = -dot(blackHoleOrigin, diskNormal);
-			  float distanceToCenter;
-			  if (abs(denominator) < EPSILON)
-			  {
-			    return -1.0;
-			  }
-			  else
-			  {
-			    float t = -(dot(rayPosition, diskNormal) + constant) / denominator;
-			    if (t < 0.0) return -1.0;
+				float denominator = dot(rayDirection, diskNormal);
+				float constant = -dot(blackHoleOrigin, diskNormal);
+				float distanceToCenter;
+				if (abs(denominator) < EPSILON)
+				{
+				return -1.0;
+				}
+				else
+				{
+				float t = -(dot(rayPosition, diskNormal) + constant) / denominator;
+				if (t < 0.0) return -1.0;
 
-			    float3 intersection = rayPosition + t * rayDirection;
-			    distanceToCenter = length(intersection - blackHoleOrigin);
-			    if (distanceToCenter >= diskInnerRadius && distanceToCenter <= diskOuterRadius)
-			    {
-			      return t;
-			    }
-			    return -1.0;
-			  }
+				float3 intersection = rayPosition + t * rayDirection;
+				distanceToCenter = length(intersection - blackHoleOrigin);
+				if (distanceToCenter >= diskInnerRadius && distanceToCenter <= diskOuterRadius)
+				{
+					return t;
+				}
+					return -1.0;
+				}
 			}
 
 			// we check if object is on the screen buffer or not
@@ -202,7 +201,7 @@
 				screenColor = tex2D(screenBuffer,screenPos.xy);
 
 				float4 depthClipPos = float4(screenPos.xy, 1.0-depth, 1.0);
-    			depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
+				depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
 
 				//position of the fragment we are getting from the screen texture
 				float4 camPos = mul(unity_CameraInvProjection, depthClipPos);
@@ -275,18 +274,18 @@
 			  		   //But if it's something transparent, get its color, and continue
 			  		  if (currentObject == ID_BLACKHOLE_DISK)
 			  		  {
-			  		    hitPosition = rayPosition + rayDirection * currentDistance;
-			  		    color.rgb += (1.0-color.rgb) * accretionDiskColor(hitPosition,base1,base2,blackHoleOrigin).rgb; //soft blend them
-			  		    currentObject = -1;
+			  			hitPosition = rayPosition + rayDirection * currentDistance;
+			  			color.rgb += (1.0-color.rgb) * accretionDiskColor(hitPosition,base1,base2,blackHoleOrigin).rgb; //soft blend them
+			  			currentObject = -1;
 			  		  }
 			  		  else
 #endif
 			  		  {
 			  		  //add && currentDistance <= rayDistance
 #if defined (WORMHOLE_ON)
-			  		    wormholeHit = true;
+			  			wormholeHit = true;
 #else
-			  		    break;
+			  			break;
 #endif
 			  		  }
 			  		}
@@ -348,16 +347,16 @@
 				return color;
 			}
 
-            float4 frag (v2f i) : SV_Target
-            {
-            	i.worldPos.xyz/=i.worldPos.w;
-            	float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
+			float4 frag (v2f i) : SV_Target
+			{
+				i.worldPos.xyz/=i.worldPos.w;
+				float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
 
-  				float4 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
+	  			float4 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
 
-  				return color;
-            }
-            ENDCG
-        }
-    }
+	  			return color;
+			}
+			ENDCG
+		}
+	}
 }
