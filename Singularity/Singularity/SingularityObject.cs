@@ -67,7 +67,7 @@ namespace Singularity
 
 			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
 																   			// Serves as the radius of our enclosing mesh, value finetuned manually
-
+			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
 
@@ -282,6 +282,7 @@ namespace Singularity
 			}
 
 			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
+			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 
 			StartCoroutine (SetupWormhole ());

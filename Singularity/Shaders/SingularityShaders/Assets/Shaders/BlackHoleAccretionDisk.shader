@@ -3,16 +3,16 @@
 	Properties
 	{
 		CubeMap ("Cubemap", CUBE) = "" {}
-		//AccretionDisk ("AccretionDisk", 2D) = "white" {} 
+		AccretionDisk ("AccretionDisk", 2D) = "white" {} 
 	}
 	SubShader
 	{
 		Tags {"QUEUE"="Geometry+1" "IgnoreProjector"="True" "RenderType"="Transparent"}
 
-		 ZWrite On
-		 ZTest On
-		 cull Front
-		 
+		ZWrite On
+		ZTest On
+		cull Front
+
 		Blend SrcAlpha OneMinusSrcAlpha
 
 		Pass
@@ -39,6 +39,7 @@
 			#define lightSpeed 0.2 // Not actually representing light speed :P
 			#define TWOPI 6.28318530718
 
+			uniform float enclosingMeshRadius;
 			uniform float blackHoleRadius;
 			uniform float gravity;
 
@@ -68,7 +69,7 @@
 
 			struct appdata
 			{
-			float4 vertex : POSITION;
+				float4 vertex : POSITION;
 			};
 
 			struct v2f
@@ -145,15 +146,15 @@
 			}
 
 			//simplify this?
-			void testDistance(int i, float distance, inout float currentDistance, inout int currentObject, float maxDistance)
+			void testDistance(float i, float distance, inout float currentDistance, inout float currentObject, float maxDistance)
 			{
 				float EPSILON = 0.0001;
 
 				if (distance >= EPSILON && distance < currentDistance && distance < maxDistance)
-			  	{
+				{
 					currentDistance = distance;
 					currentObject = i;
-			  	}
+				}
 			}
 
 			// inigo quilez plane intersect, saves like 15% performance on the whole shader
@@ -218,7 +219,7 @@
 			float4 raytrace(float3 rayPosition, float3 rayDirection, float3 blackHoleOrigin)
 			{				
 				float currentDistance = INFINITY;
-				int   currentObject = -1;
+				float   currentObject = -1;
 				float3  hitPosition;
 
 				float stepSize, rayDistance;
@@ -352,9 +353,14 @@
 				i.worldPos.xyz/=i.worldPos.w;
 				float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
 
-	  			float4 color = raytrace(_WorldSpaceCameraPos, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
+				float3 startPosition = _WorldSpaceCameraPos;
 
-	  			return color;
+				//move the starting ray position to the closest point on the enclosing mesh
+				float sphereDist = sphereDistance(startPosition, viewDir, float4(i.blackHoleOrigin.xyz/i.blackHoleOrigin.w, enclosingMeshRadius));
+				startPosition = (sphereDist == INFINITY) ? startPosition : startPosition + viewDir * sphereDist;
+
+				float4 color = raytrace(startPosition, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
+				return color;
 			}
 			ENDCG
 		}
