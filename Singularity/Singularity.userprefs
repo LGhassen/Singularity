@@ -1,19 +1,19 @@
 ﻿<Properties>
-  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\SingularityUI.cs">
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\Utils.cs">
     <Files>
       <File FileName="Singularity\ScaledSceneBufferRenderer.cs" Line="1" Column="1" />
       <File FileName="Singularity\SingularityCenteredCubeMap.cs" Line="1" Column="1" />
       <File FileName="Singularity\SingularityObject.cs" Line="1" Column="1" />
       <File FileName="Singularity\Singularity.cs" Line="1" Column="1" />
-      <File FileName="Singularity\SingularityUI.cs" Line="47" Column="11" />
-      <File FileName="Singularity\AssemblyInfo.cs" Line="20" Column="32" />
+      <File FileName="Singularity\SingularityUI.cs" Line="1" Column="1" />
+      <File FileName="Singularity\Utils.cs" Line="47" Column="25" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="Singularity" expanded="True">
-            <Node name="SingularityUI.cs" selected="True" />
+            <Node name="Utils.cs" selected="True" />
           </Node>
         </State>
       </Pad>

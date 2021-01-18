@@ -11,6 +11,7 @@ using KSP.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 
+[assembly: AssemblyVersion("0.91.*")]
 namespace Singularity
 {
 	[KSPAddon(KSPAddon.Startup.AllGameScenes, false)]

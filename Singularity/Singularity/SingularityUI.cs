@@ -10,7 +10,6 @@ using KSP;
 using KSP.IO;
 using UnityEngine;
 
-
 namespace Singularity
 {
 	[KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
@@ -61,7 +60,7 @@ namespace Singularity
 		{
 			if (uiVisible)
 			{
-				windowRect = GUILayout.Window (windowId, windowRect, DrawWindow,"Singularity 0.9");
+				windowRect = GUILayout.Window (windowId, windowRect, DrawWindow,"Singularity 0.91");
 				
 				//prevent window from going offscreen
 				windowRect.x = Mathf.Clamp(windowRect.x,0,Screen.width-windowRect.width);
