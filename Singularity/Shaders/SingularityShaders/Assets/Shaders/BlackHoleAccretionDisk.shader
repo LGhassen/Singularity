@@ -239,9 +239,11 @@
 				//acretion disk base vectors
 				float3 base1 = normalize(cross(diskNormal, diskNormal.zxy)); //move this to plugin precomputation, check if 2nd vector is equal to first and re-change it
 				float3 base2 = normalize(cross(base1, diskNormal)); 		 //move this to precomputation?
-#endif
 
+				for (int i = 0; i < 40; i++)
+#else
 				for (int i = 0; i < 35; i++)
+#endif
 				{
 					currentObject = -1;
 			  		currentDistance = INFINITY;
@@ -352,14 +354,15 @@
 			{
 				i.worldPos.xyz/=i.worldPos.w;
 				float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
+				float3 blackHoleOrigin = i.blackHoleOrigin.xyz/i.blackHoleOrigin.w;
 
 				float3 startPosition = _WorldSpaceCameraPos;
 
 				//move the starting ray position to the closest point on the enclosing mesh
-				float sphereDist = sphereDistance(startPosition, viewDir, float4(i.blackHoleOrigin.xyz/i.blackHoleOrigin.w, enclosingMeshRadius));
-				startPosition = (sphereDist == INFINITY) ? startPosition : startPosition + viewDir * sphereDist;
+				float sphereDist = sphereDistance(startPosition, viewDir, float4(blackHoleOrigin, enclosingMeshRadius));
+				startPosition = (sphereDist == INFINITY) || (length(startPosition - blackHoleOrigin) < enclosingMeshRadius) ? startPosition : startPosition + viewDir * sphereDist;
 
-				float4 color = raytrace(startPosition, viewDir, i.blackHoleOrigin.xyz/i.blackHoleOrigin.w);
+				float4 color = raytrace(startPosition, viewDir, blackHoleOrigin);
 				return color;
 			}
 			ENDCG
