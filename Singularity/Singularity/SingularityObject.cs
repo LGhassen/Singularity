@@ -251,7 +251,7 @@ namespace Singularity
 		{
 			if (hasWormhole)
 			{
-				wormholeCubeMap.UpdateCubeMap();
+				wormholeCubeMap.UpdateCubeMapAndScreenBuffer();
 			}
 		}
 
@@ -300,5 +300,10 @@ namespace Singularity
 				scaledPlanetMeshRenderer.enabled = true;
 			}
 		}
+
+		public float GetSizeInpixels(Camera cam)
+		{
+			return Utils.DistanceAndDiameterToPixelSize ((gameObject.transform.position - cam.transform.position).magnitude, enclosingMeshRadius, ScaledCamera.Instance.cam);
+		}		
 	}
 }
