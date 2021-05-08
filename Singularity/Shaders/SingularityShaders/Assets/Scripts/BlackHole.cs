@@ -5,7 +5,7 @@ using UnityEngine.Rendering;
 
 public class BlackHole : MonoBehaviour
 {
-    
+
 	[SerializeField]
 	Material blackHoleMaterial;
 
@@ -48,13 +48,13 @@ public class BlackHole : MonoBehaviour
 	Vector3 initialCamPos;
 
 
-//	public float xRot = 0f;
-//	public float yRot = 0f;
+	//	public float xRot = 0f;
+	//	public float yRot = 0f;
 
 	public float sensitivity = 1000f;
 
-    void Start()
-    {				
+	void Start()
+	{				
 		initialCamPos = sceneCam.transform.position;
 		blackHoleMaterial.SetColor("galaxyFadeColor",Color.white);
 		blackHoleMaterial.SetMatrix("cubeMapRotation",Matrix4x4.identity);
@@ -67,10 +67,10 @@ public class BlackHole : MonoBehaviour
 		screenCopyCommandBuffer.Blit (BuiltinRenderTextureType.CurrentActive, screenBuffer);
 		sceneCam.AddCommandBuffer (CameraEvent.AfterForwardOpaque, screenCopyCommandBuffer);
 		blackHoleMaterial.SetTexture("screenBuffer",screenBuffer);
-    }
-		
-    void Update()
-    {
+	}
+
+	void Update()
+	{
 		//blackHoleMaterial.SetVector("blackhole", new Vector4(gameObject.transform.position.x,gameObject.transform.position.y,gameObject.transform.position.z,radius));
 		blackHoleMaterial.SetFloat("blackHoleRadius",radius);
 		blackHoleMaterial.SetFloat("gravity", gravity);
@@ -90,13 +90,13 @@ public class BlackHole : MonoBehaviour
 		{
 			blackHoleMaterial.DisableKeyword ("RADIAL_DISK_MAPPING_OFF");
 			blackHoleMaterial.EnableKeyword ("RADIAL_DISK_MAPPING_ON");
-			blackHoleMaterial.SetTexture("AccretionDisk", radialAccretionDisk);
+//			blackHoleMaterial.SetTexture("AccretionDisk", radialAccretionDisk);
 		}
 		else
 		{
 			blackHoleMaterial.DisableKeyword ("RADIAL_DISK_MAPPING_ON");
 			blackHoleMaterial.EnableKeyword ("RADIAL_DISK_MAPPING_OFF");
-			blackHoleMaterial.SetTexture("AccretionDisk", accretionDisk);
+//			blackHoleMaterial.SetTexture("AccretionDisk", accretionDisk);
 		}
 
 		if (useAccretionDisk)
@@ -124,23 +124,23 @@ public class BlackHole : MonoBehaviour
 		//sceneCam.transform.position = Vector3.Lerp(sceneCam.transform.position,gameObject.transform.position,0.2f*Mathf.Cos(0.4f*Time.time));
 		//Debug.Log("blackhole: "+new Vector4(gameObject.transform.position.x,gameObject.transform.position.y,gameObject.transform.position.z,gameObject.transform.localScale.x).ToString());
 
-//		float initialLength = (initialCamPos - gameObject.transform.position).magnitude;
-//
-//		xRot += Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
-//		yRot += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
-//
-//		if(xRot > 90f)
-//		{
-//			xRot = 90f;
-//		}
-//		else if(xRot < -90f)
-//		{
-//			xRot = -90f;
-//		}
-//
-//		sceneCam.transform.position = gameObject.transform.position + Quaternion.Euler(xRot, yRot, 0f) * (initialLength * -Vector3.back);
-//		sceneCam.transform.LookAt(gameObject.transform.position, Vector3.up);
-    }
+		//		float initialLength = (initialCamPos - gameObject.transform.position).magnitude;
+		//
+		//		xRot += Input.GetAxis("Mouse Y") * sensitivity * Time.deltaTime;
+		//		yRot += Input.GetAxis("Mouse X") * sensitivity * Time.deltaTime;
+		//
+		//		if(xRot > 90f)
+		//		{
+		//			xRot = 90f;
+		//		}
+		//		else if(xRot < -90f)
+		//		{
+		//			xRot = -90f;
+		//		}
+		//
+		//		sceneCam.transform.position = gameObject.transform.position + Quaternion.Euler(xRot, yRot, 0f) * (initialLength * -Vector3.back);
+		//		sceneCam.transform.LookAt(gameObject.transform.position, Vector3.up);
+	}
 
 	void OnDestroy()
 	{
