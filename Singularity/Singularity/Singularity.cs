@@ -86,7 +86,7 @@ namespace Singularity
 
 			SetupCubemap ();
 
-			screenBuffer = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, 9);
+			screenBuffer = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, 9);	//change this to be HDR if HDR is enabled
 			screenBuffer.filterMode = FilterMode.Bilinear;
 			screenBuffer.Create ();
 

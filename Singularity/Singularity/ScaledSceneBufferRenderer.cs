@@ -51,6 +51,9 @@ namespace Singularity
 		{
 			if (!sceneRendered)
 			{
+				//Enable depthtextureMode on the scaled camera, because sometimes the stock game disables it randomly
+				ScaledCamera.Instance.cam.depthTextureMode = ScaledCamera.Instance.cam.depthTextureMode | DepthTextureMode.Depth;
+
 				sceneCamera.CopyFrom(ScaledCamera.Instance.cam);
 				sceneCamera.depthTextureMode = DepthTextureMode.None;				
 				sceneCamera.clearFlags = CameraClearFlags.Depth; 		//No need to clear color since we use depth to pick what we use anyway
