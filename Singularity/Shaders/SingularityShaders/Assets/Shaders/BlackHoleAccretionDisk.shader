@@ -309,7 +309,6 @@
 					float4 objectCubeMapColor = texCUBE(objectCubeMap,objectCubeMapDir);
 					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) || (objectCubeMapColor.g != 0.0) || (objectCubeMapColor.b != 0.0) || (objectCubeMapColor.a != 0.0); // check if the objectCubeMap has the object
 					//maybe in this case also do some blending over the last 0.05-0.1?
-					objectCubeMapColor.rgb*=galaxyFadeColor;
 
 					float3 screenColor = 0.0;
 					bool onScreen = false;
