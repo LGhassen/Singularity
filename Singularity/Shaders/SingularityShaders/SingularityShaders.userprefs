@@ -1,12 +1,14 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Shaders\BlackHoleAccretionDisk.shader">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Shaders\CopyIntermediateLensing.shader">
     <Files>
       <File FileName="Assets\Scripts\BlackHole.cs" Line="1" Column="1" />
       <File FileName="Assets\Shaders\Invisible.shader" Line="1" Column="1" />
       <File FileName="Assets\Shaders\SkyBox.shader" Line="1" Column="1" />
-      <File FileName="Assets\Shaders\BlackHoleAccretionDisk.shader" Line="363" Column="91" />
       <File FileName="Assets\Scripts\MouseOrbitImproved.cs" Line="1" Column="1" />
+      <File FileName="Assets\Shaders\CopyCameraDepth.shader" Line="1" Column="1" />
+      <File FileName="Assets\Shaders\BlackHoleAccretionDisk.shader" Line="97" Column="5" />
+      <File FileName="Assets\Shaders\CopyIntermediateLensing.shader" Line="1" Column="44" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

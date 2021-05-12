@@ -66,7 +66,7 @@ public class BlackHole : MonoBehaviour
 		screenCopyCommandBuffer.name = "SingularityGrabScreen";
 		screenCopyCommandBuffer.Blit (BuiltinRenderTextureType.CurrentActive, screenBuffer);
 		sceneCam.AddCommandBuffer (CameraEvent.AfterForwardOpaque, screenCopyCommandBuffer);
-		blackHoleMaterial.SetTexture("screenBuffer",screenBuffer);
+		blackHoleMaterial.SetTexture("singularityScreenBuffer",screenBuffer);
 	}
 
 	void Update()

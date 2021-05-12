@@ -38,12 +38,13 @@ namespace Singularity
 		float scaledRadius = 1f;
 		float enclosingMeshRadius = 1f;
 
-		Material singularityMaterial;
+		Material singularityMaterial, stackedCopyMaterial;
 		Texture2D AccretionDiskTexture;
 
 		MeshRenderer scaledPlanetMeshRenderer;
 
 		GameObject singularityGO;
+		public MeshRenderer singularityMeshRenderer; //change this to be non public?
 		public SingularityCenteredCubeMap singularityCubeMap;
 
 		bool hasWormhole = false;
@@ -69,7 +70,8 @@ namespace Singularity
 																   			// Serves as the radius of our enclosing mesh, value finetuned manually
 			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityMaterial.SetFloat("gravity", gravity);
-			singularityMaterial.renderQueue = 2999; //same renderqueue as scatterer sky, so it can render below or on top of it, depending on which is in front, EVE clouds are handled by depth-testing 
+			singularityMaterial.renderQueue = 2501; //No need to be same renderqueue as scatterer atmos, i's treated as an opaque object, when atmos/clouds are behind it they are included in the re-rendered scaledSpace scene
+													//Otherwise they are handled by depth-testing 
 
 			singularityMaterial.EnableKeyword ("GALAXYCUBEMAPONLY_OFF");
 			singularityMaterial.DisableKeyword ("GALAXYCUBEMAPONLY_ON");
@@ -95,7 +97,21 @@ namespace Singularity
 			SetupGameObject ();
 
 			singularityMaterial.SetTexture ("CubeMap", Singularity.Instance.galaxyCubemap);
-			singularityMaterial.SetTexture ("screenBuffer", Singularity.Instance.screenBuffer);
+			if (Singularity.Instance.lensingStacking)
+			{
+				ScaledCamera.Instance.cam.forceIntoRenderTexture = true;
+				singularityMaterial.EnableKeyword ("CUSTOM_DEPTH_TEXTURE_ON");
+				singularityMaterial.DisableKeyword ("CUSTOM_DEPTH_TEXTURE_OFF");
+			}
+			else
+			{
+				singularityMaterial.SetTexture ("singularityScreenBuffer", Singularity.Instance.screenBufferFlip);
+				singularityMaterial.EnableKeyword ("CUSTOM_DEPTH_TEXTURE_OFF");
+				singularityMaterial.DisableKeyword ("CUSTOM_DEPTH_TEXTURE_ON");
+			}
+
+			stackedCopyMaterial = new Material(Singularity.LoadedShaders ["Singularity/StackedLensingCopy"]);
+			stackedCopyMaterial.renderQueue = 2501;
 
 			StartCoroutine (SetupWormhole ());
 		}
@@ -186,11 +202,11 @@ namespace Singularity
 
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 
-			MeshRenderer singularityMR = singularityGO.GetComponent<MeshRenderer> ();
-			singularityMR.material = singularityMaterial;
-			singularityMR.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-			singularityMR.receiveShadows = false;
-			singularityMR.enabled = true;
+			singularityMeshRenderer = singularityGO.GetComponent<MeshRenderer> ();
+			singularityMeshRenderer.material = singularityMaterial;
+			singularityMeshRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+			singularityMeshRenderer.receiveShadows = false;
+			singularityMeshRenderer.enabled = true;
 
 			singularityCubeMap = singularityGO.AddComponent<SingularityCenteredCubeMap> ();
 			singularityCubeMap.singularityMaterial = singularityMaterial;
@@ -245,6 +261,16 @@ namespace Singularity
 		public void ReEnable()
 		{
 			singularityGO.layer = 10;
+		}
+
+		public void SwitchToNormalMode()
+		{
+			singularityMeshRenderer.material = singularityMaterial;
+		}
+
+		public void SwitchToCopyMode()
+		{
+			singularityMeshRenderer.material = stackedCopyMaterial;
 		}
 
 		public void UpdateTargetWormhole()

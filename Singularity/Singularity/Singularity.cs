@@ -11,7 +11,7 @@ using KSP.IO;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[assembly: AssemblyVersion("0.91.*")]
+[assembly: AssemblyVersion("0.99.*")]
 namespace Singularity
 {
 	[KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
@@ -31,7 +31,7 @@ namespace Singularity
 
 		public List<SingularityObject> loadedObjects = new List<SingularityObject>();
 		
-		public RenderTexture screenBuffer;
+		public RenderTexture screenBufferFlip, screenBufferFlop, stackingDepthBuffer;
 
 		public ScaledSceneBufferRenderer scaledSceneBufferRenderer;
 
@@ -39,6 +39,7 @@ namespace Singularity
 
 		[Persistent] public int galaxyCubemapResolution = 2048;
 		[Persistent] public int objectCubemapResolution = 2048;
+		[Persistent] public bool lensingStacking = true;
 
 		public Singularity ()
 		{
@@ -86,10 +87,32 @@ namespace Singularity
 
 			SetupCubemap ();
 
-			screenBuffer = new RenderTexture(Screen.width, Screen.height, 24, RenderTextureFormat.ARGB32, 9);	//change this to be HDR if HDR is enabled
-			screenBuffer.filterMode = FilterMode.Bilinear;
-			screenBuffer.Create ();
+			screenBufferFlip = new RenderTexture(Screen.width, Screen.height, 24, ScaledCamera.Instance.cam.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32, 9);
+			screenBufferFlip.filterMode = FilterMode.Bilinear;
+			screenBufferFlip.name = "flipBuffer";
+			screenBufferFlip.Create ();
 
+			if (lensingStacking)
+			{
+				screenBufferFlop = new RenderTexture (Screen.width, Screen.height, 0, ScaledCamera.Instance.cam.allowHDR ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32, 9); //no depth on purpose, bind depth from flip buffer when rendering
+				screenBufferFlop.filterMode = FilterMode.Bilinear;
+				screenBufferFlop.Create ();
+				screenBufferFlop.name = "flopBuffer";
+
+				stackingDepthBuffer = new RenderTexture (Screen.width, Screen.height, 24, RenderTextureFormat.Depth);
+				stackingDepthBuffer.anisoLevel = 1;
+				stackingDepthBuffer.antiAliasing = 1;
+				stackingDepthBuffer.volumeDepth = 0;
+				stackingDepthBuffer.useMipMap = false;
+				stackingDepthBuffer.autoGenerateMips = false;
+				stackingDepthBuffer.filterMode = FilterMode.Point;
+				stackingDepthBuffer.depth = 24;
+				stackingDepthBuffer.Create ();
+				stackingDepthBuffer.name="stackingDepthBuffer";
+
+				StackedLensingRenderer.Create();
+			}
+			
 			scaledSceneBufferRenderer = new ScaledSceneBufferRenderer ();
 			scaledSceneBufferRenderer.Init ();
 
@@ -124,7 +147,7 @@ namespace Singularity
 			}
 			
 			galaxyCubemap = new Cubemap (galaxyCubemapResolution, TextureFormat.ARGB32, 9);
-			ScaledCamera.Instance.galaxyCamera.RenderToCubemap (galaxyCubemap);
+			ScaledCamera.Instance.galaxyCamera.RenderToCubemap (galaxyCubemap);	//probably we should restore cubemap dimming here, seems it doesn't restore itself in the KSC screen?
 			Utils.LogInfo ("GalaxyCubemap initialized");
 		}
 
@@ -191,7 +214,9 @@ namespace Singularity
 				UnityEngine.Object.Destroy(singularityObject);
 			}
 
-			screenBuffer.Release ();
+			screenBufferFlip.Release ();
+			if (screenBufferFlop.IsCreated())
+				screenBufferFlop.Release ();
 
 			if (!ReferenceEquals(scaledSceneBufferRenderer,null))
 			{
@@ -212,6 +237,22 @@ namespace Singularity
 			foreach (SingularityObject singularityObject in loadedObjects)
 			{
 				singularityObject.ReEnable();
+			}
+		}
+		
+		public void SwitchSingularitiesToNormalMode()
+		{
+			foreach (SingularityObject singularityObject in loadedObjects)
+			{
+				singularityObject.SwitchToNormalMode();
+			}
+		}
+		
+		public void SwitchSingularitiesToCopyMode()
+		{
+			foreach (SingularityObject singularityObject in loadedObjects)
+			{
+				singularityObject.SwitchToCopyMode();
 			}
 		}
 

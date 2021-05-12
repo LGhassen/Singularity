@@ -57,8 +57,11 @@
   <ItemGroup>
      <Compile Include="Assets\Scripts\BlackHole.cs" />
      <Compile Include="Assets\Scripts\MouseOrbitImproved.cs" />
+     <None Include="Assets\Shaders\CopyIntermediateLensing.shader" />
+     <None Include="Assets\Shaders\CopyStackedLensing.shader" />
      <None Include="Assets\Shaders\SkyBox.shader" />
      <None Include="Assets\Shaders\Invisible.shader" />
+     <None Include="Assets\Shaders\CopyCameraDepth.shader" />
      <None Include="Assets\Shaders\BlackHoleAccretionDisk.shader" />
  <Reference Include="Unity.Timeline.Editor">
  <HintPath>C:/gh/scattererGithub/Singularity/Singularity/Shaders/SingularityShaders/Library/ScriptAssemblies/Unity.Timeline.Editor.dll</HintPath>

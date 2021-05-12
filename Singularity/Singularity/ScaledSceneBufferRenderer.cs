@@ -41,7 +41,7 @@ namespace Singularity
 			sceneCamera.transform.position = ScaledCamera.Instance.cam.transform.position;
 			sceneCamera.transform.parent = ScaledCamera.Instance.cam.transform;
 			
-			sceneCamera.targetTexture = Singularity.Instance.screenBuffer;
+			sceneCamera.targetTexture = Singularity.Instance.screenBufferFlip;
 
 			renderHook = ScaledCamera.Instance.galaxyCamera.gameObject.AddComponent<SceneRendererHook> ();
 			renderHook.sceneRenderer = this;
@@ -58,7 +58,7 @@ namespace Singularity
 				sceneCamera.depthTextureMode = DepthTextureMode.None;				
 				sceneCamera.clearFlags = CameraClearFlags.Depth; 		//No need to clear color since we use depth to pick what we use anyway
 				sceneCamera.enabled = false;
-				sceneCamera.targetTexture = Singularity.Instance.screenBuffer;
+				sceneCamera.targetTexture = Singularity.Instance.screenBufferFlip;
 
 				Singularity.Instance.DisableSingularitiesForSceneBuffer();
 				sceneCamera.Render(); 									//this seems to pre-render a depth texture anyway for some reason, maybe shadows?

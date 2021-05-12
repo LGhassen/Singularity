@@ -24,11 +24,6 @@ namespace Singularity
 		int cubemapFaceToUpdate = 0;
 
 		static int screenBufferProperty = Shader.PropertyToID("useScreenBuffer");
-		
-		public SingularityCenteredCubeMap ()
-		{
-
-		}
 
 		void Awake()
 		{
@@ -74,15 +69,20 @@ namespace Singularity
 			cubeMapUpdated = false;
 		}
 
+
 		public void OnWillRenderObject()
 		{
-
 			if (Camera.current == ScaledCamera.Instance.cam)
 			{
 				//this seems to trigger from way too far out, so check here that the singularity is larger than 1 pixels on-screen, maybe also add a check that the sphere intersects the view frustum (though that sounds a bit complex)
 				if (parentSingularity.GetSizeInpixels(ScaledCamera.Instance.cam) > 1)
 				{
 					UpdateCubeMapAndScreenBuffer ();
+				}
+
+				if (Singularity.Instance.lensingStacking)
+				{
+					StackedLensingRenderer.RenderForThisFrame(parentSingularity.singularityMeshRenderer, singularityMaterial); //TODO, move this to dedicated thingy, as this isn't good
 				}
 			}
 			else
@@ -94,9 +94,9 @@ namespace Singularity
 
 		public void OnRenderObject()
 		{
-			if (Camera.current != ScaledCamera.Instance.cam)	//if we finished rendering on cubemap Camera -> re-enable screen buffer use for main camera
+			if (Camera.current != ScaledCamera.Instance.cam)
 			{
-				singularityMaterial.SetFloat(screenBufferProperty,1f);
+				singularityMaterial.SetFloat(screenBufferProperty,1f); //if we finished rendering on cubemap Camera -> re-enable screen buffer use for main camera
 			}
 		}
 			
