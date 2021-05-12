@@ -24,6 +24,9 @@ namespace Singularity
 
 		bool sceneRendered = false;
 		SceneRendererHook renderHook;
+		AmbientLightHook ambientHook;
+
+		public Color scaledAmbientLight, originalAmbientLight;
 
 		// TODO: should it handle other cameras?
 		public ScaledSceneBufferRenderer ()
@@ -45,6 +48,9 @@ namespace Singularity
 
 			renderHook = ScaledCamera.Instance.galaxyCamera.gameObject.AddComponent<SceneRendererHook> ();
 			renderHook.sceneRenderer = this;
+
+			ambientHook = ScaledCamera.Instance.cam.gameObject.AddComponent<AmbientLightHook> ();
+			ambientHook.sceneRenderer = this;
 		}
 
 		public void RenderSceneIfNeeded()
@@ -61,7 +67,14 @@ namespace Singularity
 				sceneCamera.targetTexture = Singularity.Instance.screenBufferFlip;
 
 				Singularity.Instance.DisableSingularitiesForSceneBuffer();
+
+				originalAmbientLight = RenderSettings.ambientLight;
+				RenderSettings.ambientLight = scaledAmbientLight;
+
 				sceneCamera.Render(); 									//this seems to pre-render a depth texture anyway for some reason, maybe shadows?
+
+				RenderSettings.ambientLight = originalAmbientLight;
+
 				Singularity.Instance.ReEnableSingularities();
 
 				sceneRendered = true;
@@ -76,6 +89,7 @@ namespace Singularity
 		public void Cleanup()
 		{
 			Component.Destroy (renderHook);
+			Component.Destroy (ambientHook);
 		}
 	}
 }

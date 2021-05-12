@@ -113,7 +113,13 @@ namespace Singularity
 
 				//ScaledCamera.Instance.galaxyCamera.RenderToCubemap (objectCubemap); // broken
 				parentSingularity.DisableForSceneOrCubemap();
+
+				RenderSettings.ambientLight = Singularity.Instance.scaledSceneBufferRenderer.scaledAmbientLight;
+
 				objectCamera.RenderToCubemap (singularityCubemap, updateMask);
+
+				RenderSettings.ambientLight = Singularity.Instance.scaledSceneBufferRenderer.originalAmbientLight;
+
 				parentSingularity.ReEnable();
 
 				cubeMapUpdated = true;
