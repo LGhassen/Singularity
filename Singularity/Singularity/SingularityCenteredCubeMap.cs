@@ -28,7 +28,7 @@ namespace Singularity
 		void Awake()
 		{
 			objectCamera = gameObject.AddComponent<Camera> ();
-			objectCamera.cullingMask = (1 << 9) | (1 << 10);
+			objectCamera.cullingMask = (1 << 10);
 			objectCamera.renderingPath = ScaledCamera.Instance.cam.renderingPath;
 			objectCamera.depthTextureMode = DepthTextureMode.None;
 			objectCamera.farClipPlane = ScaledCamera.Instance.cam.farClipPlane;
