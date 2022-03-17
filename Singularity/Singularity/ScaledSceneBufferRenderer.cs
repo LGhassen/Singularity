@@ -2,18 +2,7 @@
 // For blending and draw order reasons (mostly with EVE+scatterer), and limitations on where we can place commandbuffers in forward rendering
 // we have to re-render the scaledSpace scene. This is still faster than a grabpass though due to how empty the scaledSpace scene is (we don't re-render the galaxy background)
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Reflection;
-using System.Runtime;
-using KSP;
-using KSP.IO;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Singularity
 {

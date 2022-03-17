@@ -9,7 +9,7 @@
 	{
 		Tags {"QUEUE"="Geometry+1" "IgnoreProjector"="True" "RenderType"="Transparent"}
 
-		ZWrite On
+		ZWrite [_ZwriteVariable]
 		ZTest On
 		cull Front
 

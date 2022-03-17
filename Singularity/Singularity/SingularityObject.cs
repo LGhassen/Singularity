@@ -1,15 +1,8 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.IO;
-using System.Reflection;
-using System.Runtime;
-using KSP;
-using KSP.IO;
 using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace Singularity
 {
@@ -34,6 +27,8 @@ namespace Singularity
 		[Persistent] public string accretionDiskTexturePath = "";
 
 		[Persistent] public float scaleEnclosingMesh = 1f;
+
+		[Persistent] public bool depthWrite = true;
 
 		float scaledRadius = 1f;
 		float enclosingMeshRadius = 1f;
@@ -63,11 +58,11 @@ namespace Singularity
 
 			singularityMaterial = new Material(Singularity.LoadedShaders ["Singularity/BlackHoleAccretionDisk"]);
 
-			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;			// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
+			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;								// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
 			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
-																   			// Serves as the radius of our enclosing mesh, value finetuned manually
+																   								// Serves as the radius of our enclosing mesh, value finetuned manually
 			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityMaterial.SetFloat("gravity", gravity);
 			singularityMaterial.renderQueue = 2501; //No need to be same renderqueue as scatterer atmos, i's treated as an opaque object, when atmos/clouds are behind it they are included in the re-rendered scaledSpace scene
@@ -111,6 +106,7 @@ namespace Singularity
 			}
 
 			stackedCopyMaterial = new Material(Singularity.LoadedShaders ["Singularity/StackedLensingCopy"]);
+			stackedCopyMaterial.SetInt ("_ZwriteVariable", depthWrite ? 1 : 0);
 			stackedCopyMaterial.renderQueue = 2501;
 
 			StartCoroutine (SetupWormhole ());
@@ -310,6 +306,8 @@ namespace Singularity
 			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
 			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
+
+			stackedCopyMaterial.SetInt ("_ZwriteVariable", depthWrite ? 1 : 0);
 
 			StartCoroutine (SetupWormhole ());
 		}

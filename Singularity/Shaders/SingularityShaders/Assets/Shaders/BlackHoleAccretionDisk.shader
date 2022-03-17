@@ -238,8 +238,8 @@
 				
 				float3 originalRayDir = rayDirection;
 
-				//float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
-				float4 color = float4(0.0, 0.0, 0.0, 1.0);
+				float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
+				//float4 color = float4(0.0, 0.0, 0.0, 1.0);
 
 				bool wormholeHit = false;
 
