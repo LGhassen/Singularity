@@ -112,6 +112,7 @@
 				float u = 0.5 - angle / TWOPI;
 
 				float4 color = tex2Dlod(AccretionDisk, float4(u, v,0.0,0.0));
+				//float4 color = tex2D(AccretionDisk, float4(u, v,0.0,0.0));
 #else
 				float u = dot (base1,normalize(pos)) * (length(pos)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
 				float v = dot (base2,normalize(pos)) * (length(pos)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
@@ -248,6 +249,9 @@
 				float3 base1 = normalize(cross(diskNormal, diskNormal.zxy)); //move this to plugin precomputation, check if 2nd vector is equal to first and re-change it
 				float3 base2 = normalize(cross(base1, diskNormal)); 		 //move this to precomputation?
 
+				int accretionDiskHitCount = 0;
+				float3 hitPositions[4];
+
 				for (int i = 0; i < 40; i++)
 #else
 				for (int i = 0; i < 35; i++)
@@ -283,10 +287,16 @@
 			  		{
 #if defined (ACCRETION_DISK_ON)
 			  		   //But if it's something transparent, get its color, and continue
-			  		  if (currentObject == ID_BLACKHOLE_DISK)
+					  if (currentObject == ID_BLACKHOLE_DISK)
 			  		  {
-			  			hitPosition = rayPosition + rayDirection * currentDistance;
-			  			color.rgb += (1.0-color.rgb) * accretionDiskColor(hitPosition,base1,base2,blackHoleOrigin).rgb; //soft blend them
+						accretionDiskHitCount++;
+						if (accretionDiskHitCount<5)
+						{
+							hitPosition = rayPosition + rayDirection * currentDistance;
+							hitPositions[accretionDiskHitCount-1] = hitPosition;
+						}
+//			  			color.rgb += (1.0-color.rgb) * accretionDiskColor(hitPosition,base1,base2,blackHoleOrigin).rgb; //soft blend them
+
 			  			currentObject = -1;
 			  		  }
 			  		  else
@@ -304,6 +314,15 @@
 					//move forward
 					rayPosition += lightSpeed * stepSize * rayDirection;
 				}
+
+#if defined (ACCRETION_DISK_ON)
+				//add the colors of all the hit positions, do it here instead of in the raytracing loop so we can have free mipmap filtering
+				//works well for the main ring but the photon sphere is still messed up
+				for (int j = 0; j < accretionDiskHitCount; j++)
+				{
+					color.rgb += (1.0-color.rgb) * accretionDiskColor(hitPositions[j],base1,base2,blackHoleOrigin).rgb; //soft blend them
+				}
+#endif
 
 				if (currentObject != ID_BLACKHOLE && length(rayPosition) > blackHoleRadius && !wormholeHit)
 				{
