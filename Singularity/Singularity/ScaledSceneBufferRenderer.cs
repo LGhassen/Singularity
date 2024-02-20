@@ -43,7 +43,8 @@ namespace Singularity
 			
 			sceneCamera.targetTexture = Singularity.Instance.screenBuffer;
 
-			renderHook = ScaledCamera.Instance.galaxyCamera.gameObject.AddComponent<SceneRendererHook> ();
+
+			renderHook = ScaledCamera.Instance.galaxyCamera.gameObject.AddOrGetComponent<SceneRendererHook> ();
 			renderHook.sceneRenderer = this;
 		}
 

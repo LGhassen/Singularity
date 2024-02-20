@@ -90,7 +90,7 @@ namespace Singularity
 			screenBuffer.filterMode = FilterMode.Bilinear;
 			screenBuffer.Create ();
 
-			scaledSceneBufferRenderer = new ScaledSceneBufferRenderer ();
+			scaledSceneBufferRenderer = gameObject.AddComponent<ScaledSceneBufferRenderer>();
 			scaledSceneBufferRenderer.Init ();
 
 			initialUniversalTime = Planetarium.GetUniversalTime ();
