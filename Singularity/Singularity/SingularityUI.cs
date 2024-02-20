@@ -19,7 +19,7 @@ namespace Singularity
 		
 		bool uiVisible = false;
 		Rect windowRect = new Rect (0, 0, 400, 50);
-		int windowId = UnityEngine.Random.Range(int.MinValue,int.MaxValue);
+		int windowId;
 		int selGridInt = 0;
 		bool editing = false;
 		string nodeText = "";
@@ -32,6 +32,8 @@ namespace Singularity
 
 		public void Awake()
 		{
+			windowId = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
 			// Wait for the main plugin to be initialized
 			StartCoroutine (DelayedInit ());
 		}
