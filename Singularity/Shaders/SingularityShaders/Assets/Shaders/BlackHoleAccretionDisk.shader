@@ -20,7 +20,6 @@
 			CGPROGRAM
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma multi_compile_fog
 			#pragma target 3.0
 
 			#pragma multi_compile ACCRETION_DISK_OFF ACCRETION_DISK_ON
@@ -29,6 +28,8 @@
 			#pragma multi_compile WORMHOLE_OFF WORMHOLE_ON
 
 			#pragma multi_compile GALAXYCUBEMAPONLY_OFF GALAXYCUBEMAPONLY_ON
+
+			#pragma multi_compile CUSTOM_DEPTH_TEXTURE_OFF CUSTOM_DEPTH_TEXTURE_ON
 
 			#include "UnityCG.cginc"
 
@@ -44,7 +45,8 @@
 			uniform float gravity;
 
 			uniform sampler2D _CameraDepthTexture;
-			uniform sampler2D screenBuffer;
+			uniform sampler2D SingularityDepthTexture;
+			uniform sampler2D SingularityScreenBuffer;
 
 			uniform samplerCUBE CubeMap;		//galaxy cubemap
 			uniform samplerCUBE objectCubeMap;	//scaledSpace objects cubemap (no background)
@@ -82,6 +84,7 @@
 			v2f vert (appdata v)
 			{
 				v2f o;
+				v.vertex.xyz*=1.02; //make this mesh slightly bigger so that when we have AA and copy from our buffer without AA without we don't get artifacts, maybe only enable this when AA is used?
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
 				o.blackHoleOrigin = mul(unity_ObjectToWorld, float4(0,0,0,1));
@@ -198,8 +201,13 @@
   				float4 screenPos = ComputeScreenPos(clipPos);
   				screenPos.xyz/=screenPos.w;
 
-  				depth =  tex2D(_CameraDepthTexture, screenPos.xy);
-				screenColor = tex2D(screenBuffer,screenPos.xy);
+			#if defined (CUSTOM_DEPTH_TEXTURE_ON)
+				depth =  tex2D(SingularityDepthTexture, screenPos.xy);
+			#else
+				depth =  tex2D(_CameraDepthTexture, screenPos.xy);
+			#endif
+
+				screenColor = tex2D(SingularityScreenBuffer,screenPos.xy);
 
 				float4 depthClipPos = float4(screenPos.xy, 1.0-depth, 1.0);
 				depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
@@ -230,8 +238,8 @@
 				
 				float3 originalRayDir = rayDirection;
 
-				//float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
-				float4 color = float4(0.0, 0.0, 0.0, 1.0);
+				float4 color = float4(1.0/255.0, 1.0/255.0, 1.0/255.0, 1.0); //HACK: make it one level above absolute black, so other blackholes in the cubemap don't get masked out
+				//float4 color = float4(0.0, 0.0, 0.0, 1.0);
 
 				bool wormholeHit = false;
 
@@ -309,7 +317,6 @@
 					float4 objectCubeMapColor = texCUBE(objectCubeMap,objectCubeMapDir);
 					bool onObjectCubeMap = (objectCubeMapColor.r != 0.0) || (objectCubeMapColor.g != 0.0) || (objectCubeMapColor.b != 0.0) || (objectCubeMapColor.a != 0.0); // check if the objectCubeMap has the object
 					//maybe in this case also do some blending over the last 0.05-0.1?
-					objectCubeMapColor.rgb*=galaxyFadeColor;
 
 					float3 screenColor = 0.0;
 					bool onScreen = false;
@@ -352,6 +359,8 @@
 
 			float4 frag (v2f i) : SV_Target
 			{
+				enclosingMeshRadius*=1.02; //make this mesh slightly bigger so that when we have AA and copy from our buffer without AA without we don't get artifacts
+
 				i.worldPos.xyz/=i.worldPos.w;
 				float3 viewDir = normalize(i.worldPos.xyz-_WorldSpaceCameraPos);
 				float3 blackHoleOrigin = i.blackHoleOrigin.xyz/i.blackHoleOrigin.w;

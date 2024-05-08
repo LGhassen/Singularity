@@ -21,19 +21,14 @@ namespace Singularity
 		public Material singularityMaterial;
 
 		bool cubeMapUpdated=false;
-		int screenBufferProperty;
 		int cubemapFaceToUpdate = 0;
 
-
-		public SingularityCenteredCubeMap ()
-		{
-
-		}
+		static int screenBufferProperty = Shader.PropertyToID("useScreenBuffer");
 
 		void Awake()
 		{
 			objectCamera = gameObject.AddComponent<Camera> ();
-			objectCamera.cullingMask = (1 << 9) | (1 << 10);
+			objectCamera.cullingMask = (1 << 10);
 			objectCamera.renderingPath = ScaledCamera.Instance.cam.renderingPath;
 			objectCamera.depthTextureMode = DepthTextureMode.None;
 			objectCamera.farClipPlane = ScaledCamera.Instance.cam.farClipPlane;
@@ -49,19 +44,24 @@ namespace Singularity
 			singularityCubemap = new RenderTexture(Singularity.Instance.objectCubemapResolution, Singularity.Instance.objectCubemapResolution, 16, RenderTextureFormat.ARGB32, 9);
 			singularityCubemap.dimension = UnityEngine.Rendering.TextureDimension.Cube;
 			singularityCubemap.autoGenerateMips = true;
-			singularityCubemap.filterMode = FilterMode.Trilinear;
+			singularityCubemap.filterMode = FilterMode.Bilinear;
 			singularityCubemap.Create ();
-			StartCoroutine (SetMaterialTexture ());
+
+			RenderTexture rt = RenderTexture.active;
+			RenderTexture.active = singularityCubemap;
+			GL.Clear(true, true, Color.clear);
+			RenderTexture.active = rt;
+			
+			StartCoroutine (SetMaterialProperties ());
 
 			objectCamera.targetTexture = null;
-
-			screenBufferProperty = Shader.PropertyToID("useScreenBuffer");
 		}
 		
-		IEnumerator SetMaterialTexture()
+		IEnumerator SetMaterialProperties()
 		{
 			yield return new WaitForFixedUpdate ();
 			singularityMaterial.SetTexture ("objectCubeMap", singularityCubemap);
+			singularityMaterial.SetFloat(screenBufferProperty,1f);
 		}
 
 		public void Update()
@@ -69,37 +69,57 @@ namespace Singularity
 			cubeMapUpdated = false;
 		}
 
+
 		public void OnWillRenderObject()
 		{
-
 			if (Camera.current == ScaledCamera.Instance.cam)
 			{
-				singularityMaterial.SetFloat(screenBufferProperty,1f); //use screenBuffer only on scaledSpace camera
-				UpdateCubeMap (); //update only when called by scaledCamera (or in future by wormhole), to avoid singularities calling it on each other and being disabled in each other's cubemaps
-			}
+				//this seems to trigger from way too far out, so check here that the singularity is larger than 1 pixels on-screen, maybe also add a check that the sphere intersects the view frustum (though that sounds a bit complex)
+				if (parentSingularity.GetSizeInpixels(ScaledCamera.Instance.cam) > 1)
+				{
+					UpdateCubeMapAndScreenBuffer ();
+				}
 
-			//works on first black hole but breaks second one,and black holes always hide each other when using screenBuffer mode which is a shame
-			//add switch for black holes which can show other black holes? how do I handle this? Like for the case of murph and the wormhole? what to do then
-//			else
-//			{
-//				singularityMaterial.SetFloat(screenBufferProperty,0f);
-//			}
+				if (Singularity.Instance.lensingStacking)
+				{
+					StackedLensingRenderer.RenderForThisFrame(parentSingularity.singularityMeshRenderer, singularityMaterial); //TODO, move this to dedicated thingy, as this isn't good
+				}
+			}
+			else
+			{
+				//if we will render on cubemap camera -> disable screenBuffer use
+				singularityMaterial.SetFloat(screenBufferProperty,0f);
+			}
 		}
-		
-		public void UpdateCubeMap ()
+
+		public void OnRenderObject()
+		{
+			if (Camera.current != ScaledCamera.Instance.cam)
+			{
+				singularityMaterial.SetFloat(screenBufferProperty,1f); //if we finished rendering on cubemap Camera -> re-enable screen buffer use for main camera
+			}
+		}
+			
+		public void UpdateCubeMapAndScreenBuffer ()
 		{
 			//limit to 1 cubeMap update per frame
 			if (!cubeMapUpdated)
 			{
-				Singularity.Instance.scaledSceneBufferRenderer.RenderSceneIfNeeded();
+				Singularity.Instance.scaledSceneBufferRenderer.RenderSceneIfNeeded();	//This probably shouldn't be called by SingularityCenteredCubemap but by SingularityObject itself?
 
 				cubemapFaceToUpdate = (cubemapFaceToUpdate+1) % 6; //update one face per cubemap per frame, later change it to only 1 face of ONE cubemap per frame
-				int updateMask = 1 << cubemapFaceToUpdate;	
+				int updateMask = 1 << cubemapFaceToUpdate;
 				//int updateMask = (TimeWarp.CurrentRate > 4) ? 63 : (1 << cubemapFaceToUpdate);						
 
 				//ScaledCamera.Instance.galaxyCamera.RenderToCubemap (objectCubemap); // broken
 				parentSingularity.DisableForSceneOrCubemap();
+
+				RenderSettings.ambientLight = Singularity.Instance.scaledSceneBufferRenderer.scaledAmbientLight;
+
 				objectCamera.RenderToCubemap (singularityCubemap, updateMask);
+
+				RenderSettings.ambientLight = Singularity.Instance.scaledSceneBufferRenderer.originalAmbientLight;
+
 				parentSingularity.ReEnable();
 
 				cubeMapUpdated = true;

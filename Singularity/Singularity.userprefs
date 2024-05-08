@@ -1,19 +1,20 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Release" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\Utils.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Singularity\SingularityObject.cs">
     <Files>
-      <File FileName="Singularity\ScaledSceneBufferRenderer.cs" Line="1" Column="1" />
+      <File FileName="Singularity\SingularityObject.cs" Line="317" Column="4" />
       <File FileName="Singularity\SingularityCenteredCubeMap.cs" Line="1" Column="1" />
-      <File FileName="Singularity\SingularityObject.cs" Line="1" Column="1" />
+      <File FileName="Singularity\StackedLensingRenderer.cs" Line="1" Column="1" />
+      <File FileName="Singularity\ScaledSceneBufferRenderer.cs" Line="1" Column="1" />
       <File FileName="Singularity\Singularity.cs" Line="1" Column="1" />
+      <File FileName="Singularity\SceneRendererHook.cs" Line="1" Column="1" />
       <File FileName="Singularity\SingularityUI.cs" Line="1" Column="1" />
-      <File FileName="Singularity\Utils.cs" Line="47" Column="25" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
           <Node name="Singularity" expanded="True">
-            <Node name="Utils.cs" selected="True" />
+            <Node name="SingularityObject.cs" selected="True" />
           </Node>
         </State>
       </Pad>

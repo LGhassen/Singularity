@@ -167,5 +167,12 @@ namespace Singularity
 			
 			return texture;
 		}
+
+		//Get the screen size of an object in pixels, given its distance and diameter.
+		public static float DistanceAndDiameterToPixelSize(float distance, float diameter, Camera cam){
+			
+			float pixelSize = (diameter * Mathf.Rad2Deg * Screen.height) / (distance * cam.fieldOfView);
+			return pixelSize;
+		}
 	}
 }
