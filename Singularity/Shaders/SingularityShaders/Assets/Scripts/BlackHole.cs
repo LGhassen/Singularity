@@ -42,6 +42,18 @@ public class BlackHole : MonoBehaviour
 	[SerializeField]
 	float rotationSpeed;
 
+	[SerializeField]
+	float dopplerIntensityRate;
+
+	[SerializeField]
+	float dopplerIntensityFactor;
+
+	[SerializeField]
+	float dopplerIntensityOffset;
+
+	[SerializeField]
+	float dopplerColorFactor;
+
 	RenderTexture screenBuffer;
 	CommandBuffer screenCopyCommandBuffer;
 
@@ -78,6 +90,11 @@ public class BlackHole : MonoBehaviour
 		blackHoleMaterial.SetVector("diskNormal", DiskNormal);
 		blackHoleMaterial.SetFloat("diskInnerRadius", DiskInnerRadius);
 		blackHoleMaterial.SetFloat("diskOuterRadius", DiskOuterRadius);
+
+		blackHoleMaterial.SetFloat ("dopplerIntensityRate", dopplerIntensityRate);
+		blackHoleMaterial.SetFloat ("dopplerIntensityFactor", dopplerIntensityFactor);
+		blackHoleMaterial.SetFloat ("dopplerIntensityOffset", dopplerIntensityOffset);
+		blackHoleMaterial.SetFloat ("dopplerColorFactor", dopplerColorFactor);
 
 		//gameObject.transform.position = new Vector3(Mathf.Sin(0.53f*Time.time), 2f+3f*Mathf.Cos(0.74f*Time.time), Mathf.Cos(0.22f*Time.time));
 

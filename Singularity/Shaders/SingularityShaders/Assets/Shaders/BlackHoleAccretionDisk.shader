@@ -66,6 +66,11 @@
 			uniform float diskInnerRadius;
 			uniform float diskOuterRadius;
 
+			uniform float dopplerIntensityRate;
+			uniform float dopplerIntensityFactor;
+			uniform float dopplerIntensityOffset;
+			uniform float dopplerColorFactor;
+
 			uniform float rotationSpeed;
 			uniform float universalTime;
 
@@ -91,30 +96,29 @@
 				return o;
 			}
 
-
 			float3 accretionDiskColor(float3 pos, float3 base1, float3 base2, float3 blackHoleOrigin)
 			{
 
-				pos = pos - blackHoleOrigin;
-
+				float3 posOrigin = pos - blackHoleOrigin;
+				float dist = length(posOrigin);
 #if defined (RADIAL_DISK_MAPPING_ON)
 				//TODO: make this rotate, move TWOPI to defines
 				//need to rotate base1 and base2?
-				float dist = length(pos);
+				
 
 				float v = clamp((dist - diskInnerRadius) / (diskOuterRadius - diskInnerRadius), 0.0, 1.0);
 
 //				float3 base = cross(blackholeDisk.xyz, float3(0.0, 0.0, 1.0));
-				float angle = acos(dot(normalize(base1), normalize(pos)));
-				if (dot(cross(base1, pos), diskNormal) < 0.0) angle = -angle;
+				float angle = acos(dot(normalize(base1), normalize(posOrigin)));
+				if (dot(cross(base1, posOrigin), diskNormal) < 0.0) angle = -angle;
 				angle-= universalTime * rotationSpeed;
 
 				float u = 0.5 - angle / TWOPI;
 
 				float4 color = tex2Dlod(AccretionDisk, float4(u, v,0.0,0.0));
 #else
-				float u = dot (base1,normalize(pos)) * (length(pos)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
-				float v = dot (base2,normalize(pos)) * (length(pos)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
+				float u = dot (base1,normalize(posOrigin)) * (length(posOrigin)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
+				float v = dot (base2,normalize(posOrigin)) * (length(posOrigin)-diskInnerRadius) / (diskOuterRadius-diskInnerRadius);
 
 				float2 UV = float2(u,v);
 
@@ -133,6 +137,11 @@
 
 				float4 color = tex2Dlod(AccretionDisk, float4(UV,0.0,0.0));
 #endif
+				float3 posCamera = pos - _WorldSpaceCameraPos.xyz;
+				float dopplerIntensity = dot(diskNormal, cross(normalize(posOrigin), normalize(posCamera))) / pow(dist / diskInnerRadius, 0.25);
+				color.r *= ((dopplerIntensityFactor - dopplerColorFactor) * tanh(dopplerIntensityRate * dopplerIntensity) + dopplerIntensityOffset);
+				color.g *= (dopplerIntensityFactor * tanh(dopplerIntensityRate * dopplerIntensity) + dopplerIntensityOffset);
+				color.b *= ((dopplerIntensityFactor + dopplerColorFactor) * tanh(dopplerIntensityRate * dopplerIntensity) + dopplerIntensityOffset);
 				return color.rgb*color.a;
 			}
 

@@ -30,6 +30,11 @@ namespace Singularity
 
 		[Persistent] public bool depthWrite = true;
 
+		[Persistent] public float dopplerEffectIntensityRate = 0f;
+		[Persistent] public float dopplerEffectIntensityFactor = 0.8f;
+		[Persistent] public float dopplerEffectIntensityOffset = 1.0f;
+		[Persistent] public float dopplerEffectColorFactor = 0f;
+
 		float scaledRadius = 1f;
 		float enclosingMeshRadius = 1f;
 
@@ -159,6 +164,11 @@ namespace Singularity
 				singularityMaterial.SetVector ("diskNormal", accretionDiskNormal);
 				singularityMaterial.SetFloat ("diskInnerRadius", accretionDiskInnerRadius / 6000f); //change to scaledSpace scale
 				singularityMaterial.SetFloat ("diskOuterRadius", accretionDiskOuterRadius / 6000f);
+
+				singularityMaterial.SetFloat ("dopplerIntensityRate", dopplerEffectIntensityRate);
+				singularityMaterial.SetFloat ("dopplerIntensityFactor", dopplerEffectIntensityFactor);
+				singularityMaterial.SetFloat ("dopplerIntensityOffset", dopplerEffectIntensityOffset);
+				singularityMaterial.SetFloat ("dopplerColorFactor", dopplerEffectColorFactor);
 
 				//convert from RPM to rad/s
 				singularityMaterial.SetFloat("rotationSpeed", accretionDiskRotationSpeed * (Mathf.PI * 2) / 60);
