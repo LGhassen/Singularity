@@ -139,9 +139,23 @@
 #endif
 				float3 posCamera = pos - _WorldSpaceCameraPos.xyz;
 				float dopplerIntensity = dot(diskNormal, cross(normalize(posOrigin), normalize(posCamera))) / pow(dist / diskInnerRadius, 0.25);
+				/*
 				color.r *= ((dopplerIntensityFactor - dopplerColorFactor) * tanh(dopplerIntensityRate * dopplerIntensity) + dopplerIntensityOffset);
 				color.g *= (dopplerIntensityFactor * tanh(dopplerIntensityRate * dopplerIntensity) + dopplerIntensityOffset);
 				color.b *= ((dopplerIntensityFactor + dopplerColorFactor) * tanh(dopplerIntensityRate * dopplerIntensity) + dopplerIntensityOffset);
+				*/
+				if (dopplerIntensity>=0)
+				{
+					color.r *= ((dopplerIntensityFactor - dopplerColorFactor) * (-1.0f/(dopplerIntensityRate * dopplerIntensity + 1.0f) + 1.0f) + dopplerIntensityOffset);
+					color.g *= (dopplerIntensityFactor * (-1.0f/(dopplerIntensityRate * dopplerIntensity + 1.0f) + 1.0f) + dopplerIntensityOffset);
+					color.b *= ((dopplerIntensityFactor + dopplerColorFactor) * (-1.0f/(dopplerIntensityRate * dopplerIntensity + 1.0f) + 1.0f) + dopplerIntensityOffset);
+				}
+				else
+				{
+					color.r *= ((dopplerIntensityFactor - dopplerColorFactor) * (-1.0f/(dopplerIntensityRate * dopplerIntensity - 1.0f) - 1.0f) + dopplerIntensityOffset);
+					color.g *= (dopplerIntensityFactor * (-1.0f/(dopplerIntensityRate * dopplerIntensity - 1.0f) - 1.0f) + dopplerIntensityOffset);
+					color.b *= ((dopplerIntensityFactor + dopplerColorFactor) * (-1.0f/(dopplerIntensityRate * dopplerIntensity - 1.0f) - 1.0f) + dopplerIntensityOffset);
+				}
 				return color.rgb*color.a;
 			}
 

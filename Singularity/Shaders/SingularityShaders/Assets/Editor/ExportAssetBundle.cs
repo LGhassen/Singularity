@@ -14,8 +14,8 @@ namespace singularityShaders
 		static void BuildAllAssetBundles ()
 		{
 			// Put the bundles in a folder called "AssetBundles"
-			//var outDir = "Assets/AssetBundles";
-			var outDir = "C:/Steam/steamapps/common/Kerbal Space Program/GameData/Singularity/shaders";
+			var outDir = "Assets/AssetBundles";
+			//var outDir = "C:/Steam/steamapps/common/Kerbal Space Program/GameData/Singularity/shaders";
 			var outDir2 = "C:/Steam/steamapps/common/Kerbal Space Program 1.8.1/GameData/Singularity/shaders";
 
 			if (!Directory.Exists (outDir))
