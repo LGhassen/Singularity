@@ -11,6 +11,7 @@ namespace Singularity
 		[Persistent] public string name;
 		
 		[Persistent] public float gravity = 1f;
+		[Persistent] public float schwarzschildRadius = 0f;
 
 		[Persistent] public bool hideCelestialBody = true;
 
@@ -63,13 +64,20 @@ namespace Singularity
 
 			singularityMaterial = new Material(Singularity.LoadedShaders ["Singularity/BlackHoleAccretionDisk"]);
 
-			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;								// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
+			if (!_cn.HasValue ("schwarzschildRadius"))
+			{
+				schwarzschildRadius = 32400f * Mathf.Sqrt(Mathf.Abs(gravity));
+			}
+			//scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;								// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
+			scaledRadius = schwarzschildRadius / 6000f * 0.926f;								// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
-			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
+			//enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;	// The radius (in scaled Space) at which the gravity no longer warps the image
+			enclosingMeshRadius = schwarzschildRadius / 27f;	// The radius (in scaled Space) at which the gravity no longer warps the image
 																   								// Serves as the radius of our enclosing mesh, value finetuned manually
 			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityMaterial.SetFloat("gravity", gravity);
+			singularityMaterial.SetFloat("schwarzschildRadius", schwarzschildRadius);
 			singularityMaterial.renderQueue = 2501; //No need to be same renderqueue as scatterer atmos, i's treated as an opaque object, when atmos/clouds are behind it they are included in the re-rendered scaledSpace scene
 													//Otherwise they are handled by depth-testing 
 
@@ -297,10 +305,16 @@ namespace Singularity
 				return;
 			}
 
-			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;
+			//scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;
+			if (!_cn.HasValue ("schwarzschildRadius"))
+			{
+				schwarzschildRadius = 32400f * Mathf.Sqrt(Mathf.Abs(gravity));
+			}
+			scaledRadius = schwarzschildRadius / 6000f * 0.926f;
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
 			singularityMaterial.SetFloat("gravity", gravity);
+			singularityMaterial.SetFloat("schwarzschildRadius", schwarzschildRadius);
 
 			ConfigureAccretionDisk ();
 			
@@ -313,7 +327,8 @@ namespace Singularity
 				UnHideCelestialBody();
 			}
 
-			enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
+			//enclosingMeshRadius = scaleEnclosingMesh * Mathf.Sqrt (Mathf.Abs(gravity)) * 120f;
+			enclosingMeshRadius = schwarzschildRadius / 27f;
 			singularityMaterial.SetFloat("enclosingMeshRadius", enclosingMeshRadius);
 			singularityGO.transform.localScale = new Vector3 (enclosingMeshRadius / gameObject.transform.localScale.x, enclosingMeshRadius / gameObject.transform.localScale.y, enclosingMeshRadius / gameObject.transform.localScale.z);
 

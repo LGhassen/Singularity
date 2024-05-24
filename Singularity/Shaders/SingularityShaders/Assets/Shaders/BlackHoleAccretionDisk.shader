@@ -43,6 +43,7 @@
 			uniform float enclosingMeshRadius;
 			uniform float blackHoleRadius;
 			uniform float gravity;
+			uniform float schwarzschildRadius;
 
 			uniform sampler2D _CameraDepthTexture;
 			uniform sampler2D SingularityDepthTexture;
@@ -286,7 +287,8 @@
 			  		// 0.05: rate of smaller steps when approaching blackhole
 			  		stepSize = rayDistance - (blackHoleRadius *0.05);
 
-			  		rayAccel = normalize(gravityVector) * gravity / (rayDistance * rayDistance);
+			  		//rayAccel = normalize(gravityVector) * gravity / (rayDistance * rayDistance);
+					rayAccel = normalize(gravityVector) * schwarzschildRadius*schwarzschildRadius/1.04976E9 / (rayDistance * rayDistance);
 
 					float accelFadeOut = clamp( ( length(rayAccel) - 0.001 ) / 0.001, 0.0, 1.0); //we fade out acceleration over the last 0.001 so we can have a smaller enclosing mesh
 			  		rayAccel = lerp(0.0, rayAccel, accelFadeOut);

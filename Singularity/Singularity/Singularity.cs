@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 
-[assembly: AssemblyVersion("0.992.*")]
+[assembly: AssemblyVersion("0.993.*")]
 namespace Singularity
 {
 	[KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
@@ -178,7 +178,7 @@ namespace Singularity
 
 		void AddSingularityObject (ConfigNode _cn)
 		{
-			if (_cn.HasValue ("name") && _cn.HasValue ("gravity"))
+			if (_cn.HasValue ("name") && (_cn.HasValue ("gravity") || _cn.HasValue ("schwarzschildRadius")))
 			{
 				Transform scaledBodyTransform = ScaledSpace.Instance.transform.FindChild (_cn.GetValue ("name"));
 				if (!ReferenceEquals (scaledBodyTransform, null))
