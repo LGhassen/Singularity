@@ -11,6 +11,7 @@ namespace Singularity
 		[Persistent] public string name;
 		
 		[Persistent] public float gravity = 1f;
+		[Persistent] public float schwarzschildRadius = 32400f;
 
 		[Persistent] public bool hideCelestialBody = true;
 
@@ -29,6 +30,11 @@ namespace Singularity
 		[Persistent] public float scaleEnclosingMesh = 1f;
 
 		[Persistent] public bool depthWrite = true;
+
+		[Persistent] public float dopplerEffectIntensityRate = 0f;
+		[Persistent] public float dopplerEffectIntensityFactor = 0.8f;
+		[Persistent] public float dopplerEffectIntensityOffset = 1.0f;
+		[Persistent] public float dopplerEffectColorFactor = 0f;
 
 		float scaledRadius = 1f;
 		float enclosingMeshRadius = 1f;
@@ -58,6 +64,10 @@ namespace Singularity
 
 			singularityMaterial = new Material(Singularity.LoadedShaders ["Singularity/BlackHoleAccretionDisk"]);
 
+			if (_cn.HasValue ("schwarzschildRadius"))
+			{
+				gravity = schwarzschildRadius * schwarzschildRadius / 32400f / 32400f;
+			}
 			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;								// The apparent radius (in scaled Space) of the black hole (or event horizon), not physically correct
 			singularityMaterial.SetFloat("blackHoleRadius", scaledRadius);
 
@@ -159,6 +169,11 @@ namespace Singularity
 				singularityMaterial.SetVector ("diskNormal", accretionDiskNormal);
 				singularityMaterial.SetFloat ("diskInnerRadius", accretionDiskInnerRadius / 6000f); //change to scaledSpace scale
 				singularityMaterial.SetFloat ("diskOuterRadius", accretionDiskOuterRadius / 6000f);
+
+				singularityMaterial.SetFloat ("dopplerIntensityRate", dopplerEffectIntensityRate);
+				singularityMaterial.SetFloat ("dopplerIntensityFactor", dopplerEffectIntensityFactor);
+				singularityMaterial.SetFloat ("dopplerIntensityOffset", dopplerEffectIntensityOffset);
+				singularityMaterial.SetFloat ("dopplerColorFactor", dopplerEffectColorFactor);
 
 				//convert from RPM to rad/s
 				singularityMaterial.SetFloat("rotationSpeed", accretionDiskRotationSpeed * (Mathf.PI * 2) / 60);
@@ -285,6 +300,10 @@ namespace Singularity
 			{
 				Utils.LogError("Apply failed");
 				return;
+			}
+			if (_cn.HasValue ("schwarzschildRadius"))
+			{
+				gravity = schwarzschildRadius * schwarzschildRadius / 32400f / 32400f;
 			}
 
 			scaledRadius = Mathf.Sqrt (Mathf.Max(gravity,0f)) * 5f;
