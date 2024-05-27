@@ -28,9 +28,6 @@ public class BlackHole : MonoBehaviour
 	float gravity;
 
 	[SerializeField]
-	float schwarzschildRadius;
-
-	[SerializeField]
 	Camera sceneCam;
 
 	[SerializeField]
@@ -89,7 +86,6 @@ public class BlackHole : MonoBehaviour
 		//blackHoleMaterial.SetVector("blackhole", new Vector4(gameObject.transform.position.x,gameObject.transform.position.y,gameObject.transform.position.z,radius));
 		blackHoleMaterial.SetFloat("blackHoleRadius",radius);
 		blackHoleMaterial.SetFloat("gravity", gravity);
-		blackHoleMaterial.SetFloat("schwarzschildRadius", schwarzschildRadius);
 		blackHoleMaterial.SetVector("blackholeDisk", new Vector4(DiskInnerRadius*DiskNormal.x,DiskInnerRadius*DiskNormal.y,DiskInnerRadius*DiskNormal.z,DiskOuterRadius));
 		blackHoleMaterial.SetVector("diskNormal", DiskNormal);
 		blackHoleMaterial.SetFloat("diskInnerRadius", DiskInnerRadius);

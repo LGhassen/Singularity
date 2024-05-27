@@ -5,7 +5,7 @@ using System.IO;
 using System.Reflection;
 using UnityEngine;
 
-[assembly: AssemblyVersion("0.993.*")]
+[assembly: AssemblyVersion("0.994.*")]
 namespace Singularity
 {
 	[KSPAddon(KSPAddon.Startup.AllGameScenes, false)]
