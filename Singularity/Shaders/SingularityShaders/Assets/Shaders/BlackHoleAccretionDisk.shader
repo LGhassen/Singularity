@@ -209,7 +209,13 @@
 
 				screenColor = tex2D(SingularityScreenBuffer,screenPos.xy);
 
+				// On D3D (reversed-Z): depth=1 at near, 0 at far. Convert via (1-depth) before remapping to [-1,1] for GL-convention unity_CameraInvProjection.
+				// On OpenGL (non-reversed-Z): depth=0 at near, 1 at far. Use depth directly before remapping to [-1,1].
+			#if defined(UNITY_REVERSED_Z)
 				float4 depthClipPos = float4(screenPos.xy, 1.0-depth, 1.0);
+			#else
+				float4 depthClipPos = float4(screenPos.xy, depth, 1.0);
+			#endif
 				depthClipPos.xyz = 2.0f * depthClipPos.xyz - 1.0f;
 
 				//position of the fragment we are getting from the screen texture
@@ -327,10 +333,18 @@
 						onScreen = onScreenBuffer(infinityPos, blackHoleOrigin, depth, screenColor);
 					}
 
+					// On reversed-Z (D3D/Metal): cleared/sky depth = 0.0, actual objects have depth > 0.0
+					// On non-reversed-Z (OpenGL): cleared/sky depth = 1.0, actual objects have depth < 1.0
+					#if defined(UNITY_REVERSED_Z)
+						bool depthHasObject = depth > 0.0;
+					#else
+						bool depthHasObject = depth < 1.0;
+					#endif
+
 					if (length(_WorldSpaceCameraPos.xyz-blackHoleOrigin) > 4 * blackHoleRadius)
 					{
 						// on screen -> use screenColor if actually an object or galaxyColor, object off screen -> use objectCubeMapColor if actually an object or galaxyColor
-						screenColor = onScreen ? ( depth > 0.0 ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor.rgb : galaxyCubeMapColor);
+						screenColor = onScreen ? ( depthHasObject ? screenColor : galaxyCubeMapColor ) : ( onObjectCubeMap ? objectCubeMapColor.rgb : galaxyCubeMapColor);
 					}
 					else
 					{
