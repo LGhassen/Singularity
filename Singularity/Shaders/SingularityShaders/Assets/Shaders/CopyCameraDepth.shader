@@ -31,7 +31,7 @@
 
 			float frag(v2f IN) : SV_Depth
 			{
-				return float4(tex2Dlod(_CameraDepthTexture, float4(IN.uv,0.0,0.0)).rgb,1.0);
+				return tex2Dlod(_CameraDepthTexture, float4(IN.uv,0.0,0.0)).r;
 			}
 			ENDCG
 		}
@@ -65,7 +65,7 @@
 
 			float frag(v2f IN) : SV_Depth
 			{
-				return float4(tex2Dlod(_MainTex, float4(IN.uv,0.0,0.0)).rgb,1.0);
+				return tex2Dlod(_MainTex, float4(IN.uv,0.0,0.0)).r;
 			}
 			ENDCG
 		} 
