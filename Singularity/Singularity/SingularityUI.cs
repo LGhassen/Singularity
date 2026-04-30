@@ -72,7 +72,7 @@ namespace Singularity
 		
 		internal void Update()
 		{
-			if (GameSettings.MODIFIER_KEY.GetKey () && Input.GetKeyDown (KeyCode.S))
+			if (InputSettings.toggleSingularityUI.GetKeyDown())
 			{
 				uiVisible = !uiVisible;
 			}
