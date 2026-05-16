@@ -234,7 +234,7 @@ namespace Singularity
 			}
 		}
 
-		public void Update()
+        public void Update()
 		{
 			// Is this needed every frame?
 			if (hideCelestialBody)

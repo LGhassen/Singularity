@@ -56,6 +56,7 @@
 #endif
 
 			uniform float useScreenBuffer; 		//if we should use the screenBuffer, only for the main scaled camera
+			uniform float useReflectionProbeMode;
 
 			uniform float3 galaxyFadeColor;
 			float4x4 cubeMapRotation;
@@ -84,10 +85,16 @@
 			v2f vert (appdata v)
 			{
 				v2f o;
-				v.vertex.xyz*=1.02; //make this mesh slightly bigger so that when we have AA and copy from our buffer without AA without we don't get artifacts, maybe only enable this when AA is used?
+				v.vertex.xyz *= 1.02; // Make this mesh slightly bigger so that when we have AA and copy from our buffer without AA without we don't get artifacts, maybe only enable this when AA is used?
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.worldPos = mul(unity_ObjectToWorld, v.vertex);
-				o.blackHoleOrigin = mul(unity_ObjectToWorld, float4(0,0,0,1));
+				o.blackHoleOrigin = mul(unity_ObjectToWorld, float4(0, 0, 0, 1));
+
+				// The stock reflection probe has a limited render distance which singularity verts easily overshoot
+				if (useReflectionProbeMode > 0.5f)
+				{
+					o.vertex.z = 1e-5f / o.vertex.w;
+				}
 				return o;
 			}
 

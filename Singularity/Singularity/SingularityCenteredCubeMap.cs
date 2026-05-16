@@ -24,8 +24,9 @@ namespace Singularity
 		int cubemapFaceToUpdate = 0;
 
 		static int screenBufferProperty = Shader.PropertyToID("useScreenBuffer");
+        static int useReflectionProbeModeProperty = Shader.PropertyToID("useReflectionProbeMode");
 
-		void Awake()
+        void Awake()
 		{
 			objectCamera = gameObject.AddComponent<Camera> ();
 			objectCamera.cullingMask = (1 << 10);
@@ -87,10 +88,13 @@ namespace Singularity
 			}
 			else
 			{
-				//if we will render on cubemap camera -> disable screenBuffer use
-				singularityMaterial.SetFloat(screenBufferProperty,0f);
-			}
-		}
+                // If we will render on a singularity cubemap camera or any other camera, disable screenBuffer use
+                singularityMaterial.SetFloat(screenBufferProperty, 0f);
+
+                // If we will render on the built-in reflection probe camera, we need to stop verts from being culled
+                singularityMaterial.SetFloat(useReflectionProbeModeProperty, Camera.current.cameraType == CameraType.Reflection ? 1f : 0f);
+            }
+        }
 
 		public void OnRenderObject()
 		{
