@@ -240,10 +240,6 @@ namespace Singularity
 
         public void Update()
 		{
-			// Is this needed every frame?
-			if (hideCelestialBody)
-				HideCelestialBody ();
-
 			singularityMaterial.SetColor(galaxyFadeColorProperty, Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
 			singularityMaterial.SetMatrix (cubeMapRotationProperty, Matrix4x4.Rotate (Planetarium.Rotation).inverse);
 

@@ -210,13 +210,15 @@ namespace Singularity
         {
             foreach (SingularityObject singularityObject in loadedObjects)
             {
-                singularityObject.OnDestroy();
                 UnityEngine.Object.Destroy(singularityObject);
             }
 
-            screenBufferFlip.Release();
-            if (screenBufferFlop.IsCreated())
+            if (!ReferenceEquals(screenBufferFlip, null))
+                screenBufferFlip.Release();
+            if (!ReferenceEquals(screenBufferFlop, null) && screenBufferFlop.IsCreated())
                 screenBufferFlop.Release();
+            if (!ReferenceEquals(stackingDepthBuffer, null) && stackingDepthBuffer.IsCreated())
+                stackingDepthBuffer.Release();
 
             if (!ReferenceEquals(scaledSceneBufferRenderer, null))
             {
