@@ -47,6 +47,15 @@ public class BlackHole : MonoBehaviour
 
 	Vector3 initialCamPos;
 
+	static readonly int blackHoleRadiusProperty = Shader.PropertyToID("blackHoleRadius");
+	static readonly int gravityProperty = Shader.PropertyToID("gravity");
+	static readonly int blackholeDiskProperty = Shader.PropertyToID("blackholeDisk");
+	static readonly int diskNormalProperty = Shader.PropertyToID("diskNormal");
+	static readonly int diskInnerRadiusProperty = Shader.PropertyToID("diskInnerRadius");
+	static readonly int diskOuterRadiusProperty = Shader.PropertyToID("diskOuterRadius");
+	static readonly int universalTimeProperty = Shader.PropertyToID("universalTime");
+	static readonly int rotationSpeedProperty = Shader.PropertyToID("rotationSpeed");
+
 
 	//	public float xRot = 0f;
 	//	public float yRot = 0f;
@@ -72,12 +81,12 @@ public class BlackHole : MonoBehaviour
 	void Update()
 	{
 		//blackHoleMaterial.SetVector("blackhole", new Vector4(gameObject.transform.position.x,gameObject.transform.position.y,gameObject.transform.position.z,radius));
-		blackHoleMaterial.SetFloat("blackHoleRadius",radius);
-		blackHoleMaterial.SetFloat("gravity", gravity);
-		blackHoleMaterial.SetVector("blackholeDisk", new Vector4(DiskInnerRadius*DiskNormal.x,DiskInnerRadius*DiskNormal.y,DiskInnerRadius*DiskNormal.z,DiskOuterRadius));
-		blackHoleMaterial.SetVector("diskNormal", DiskNormal);
-		blackHoleMaterial.SetFloat("diskInnerRadius", DiskInnerRadius);
-		blackHoleMaterial.SetFloat("diskOuterRadius", DiskOuterRadius);
+		blackHoleMaterial.SetFloat(blackHoleRadiusProperty,radius);
+		blackHoleMaterial.SetFloat(gravityProperty, gravity);
+		blackHoleMaterial.SetVector(blackholeDiskProperty, new Vector4(DiskInnerRadius*DiskNormal.x,DiskInnerRadius*DiskNormal.y,DiskInnerRadius*DiskNormal.z,DiskOuterRadius));
+		blackHoleMaterial.SetVector(diskNormalProperty, DiskNormal);
+		blackHoleMaterial.SetFloat(diskInnerRadiusProperty, DiskInnerRadius);
+		blackHoleMaterial.SetFloat(diskOuterRadiusProperty, DiskOuterRadius);
 
 		//gameObject.transform.position = new Vector3(Mathf.Sin(0.53f*Time.time), 2f+3f*Mathf.Cos(0.74f*Time.time), Mathf.Cos(0.22f*Time.time));
 
@@ -116,8 +125,8 @@ public class BlackHole : MonoBehaviour
 		blackHoleMaterial.DisableKeyword ("WORMHOLE_ON");
 		blackHoleMaterial.EnableKeyword ("WORMHOLE_OFF");
 
-		blackHoleMaterial.SetFloat("universalTime", Time.time);
-		blackHoleMaterial.SetFloat("rotationSpeed", rotationSpeed * (Mathf.PI * 2f) / 60f);
+		blackHoleMaterial.SetFloat(universalTimeProperty, Time.time);
+		blackHoleMaterial.SetFloat(rotationSpeedProperty, rotationSpeed * (Mathf.PI * 2f) / 60f);
 
 
 		//sceneCam.transform.LookAt(gameObject.transform);

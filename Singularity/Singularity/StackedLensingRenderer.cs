@@ -14,6 +14,10 @@ namespace Singularity
         static StackedLensingRenderer lensingRenderer;
         private Material copyCameraDepthMaterial, lensingCopyMaterial;
 
+        static readonly int singularityFinalStackedBufferProperty = Shader.PropertyToID("singularityFinalStackedBuffer");
+        static readonly int singularityScreenBufferProperty = Shader.PropertyToID("SingularityScreenBuffer");
+        static readonly int singularityDepthTextureProperty = Shader.PropertyToID("SingularityDepthTexture");
+
         public static void Create()
         {
             lensingRenderer = (StackedLensingRenderer)ScaledCamera.Instance.cam.gameObject.AddComponent(typeof(StackedLensingRenderer));
@@ -47,7 +51,7 @@ namespace Singularity
                     copyCB.Blit(null, Singularity.Instance.stackingDepthBuffer, copyCameraDepthMaterial, 0); //TODO: attempt to remove this step and do the first rendering operation using BuiltinRenderTextureType.Depth to get at the camera's builtin depth
                                                                                                              //If it doesn't work consider replacing this with multitarget blit
 
-                    copyCB.SetGlobalTexture("singularityFinalStackedBuffer", Singularity.Instance.screenBufferFlop.colorBuffer); //Expose result buffer to copy shader
+                    copyCB.SetGlobalTexture(singularityFinalStackedBufferProperty, Singularity.Instance.screenBufferFlop.colorBuffer); //Expose result buffer to copy shader
 
                     ScaledCamera.Instance.cam.AddCommandBuffer(CameraEvent.AfterForwardOpaque, copyCB);
                     commandBuffersAdded.Add(copyCB);
@@ -60,8 +64,8 @@ namespace Singularity
                 {
                     CommandBuffer renderCB = new CommandBuffer();
 
-                    renderCB.SetGlobalTexture("SingularityScreenBuffer", Singularity.Instance.screenBufferFlip.colorBuffer);
-                    renderCB.SetGlobalTexture("SingularityDepthTexture", Singularity.Instance.stackingDepthBuffer);
+                    renderCB.SetGlobalTexture(singularityScreenBufferProperty, Singularity.Instance.screenBufferFlip.colorBuffer);
+                    renderCB.SetGlobalTexture(singularityDepthTextureProperty, Singularity.Instance.stackingDepthBuffer);
 
                     renderCB.SetRenderTarget(Singularity.Instance.screenBufferFlop, Singularity.Instance.screenBufferFlip.depthBuffer);
 

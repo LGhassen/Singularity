@@ -45,6 +45,10 @@ namespace Singularity
 		bool hasWormhole = false;
 		SingularityCenteredCubeMap wormholeCubeMap;
 
+		static readonly int galaxyFadeColorProperty = Shader.PropertyToID("galaxyFadeColor");
+		static readonly int cubeMapRotationProperty = Shader.PropertyToID("cubeMapRotation");
+		static readonly int universalTimeProperty = Shader.PropertyToID("universalTime");
+
 		public SingularityObject ()
 		{
 
@@ -240,11 +244,11 @@ namespace Singularity
 			if (hideCelestialBody)
 				HideCelestialBody ();
 
-			singularityMaterial.SetColor("galaxyFadeColor", Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
-			singularityMaterial.SetMatrix ("cubeMapRotation", Matrix4x4.Rotate (Planetarium.Rotation).inverse);
+			singularityMaterial.SetColor(galaxyFadeColorProperty, Singularity.Instance.galaxyCubeControlMPB.GetColor (PropertyIDs._Color));
+			singularityMaterial.SetMatrix (cubeMapRotationProperty, Matrix4x4.Rotate (Planetarium.Rotation).inverse);
 
 			if (useAccretionDisk)
-				singularityMaterial.SetFloat ("universalTime", Singularity.Instance.getTime ());
+				singularityMaterial.SetFloat (universalTimeProperty, Singularity.Instance.getTime ());
 		}
 
 		// Disable rendering from our cubeMap (so no recursive rendering) or sceneBuffer
