@@ -64,7 +64,8 @@ namespace Singularity
 
             gameDataPath = KSPUtil.ApplicationRootPath + "GameData/";
 
-            LoadedShadersDictionary = Utils.LoadAssetBundle(path);
+            if (LoadedShadersDictionary == null || LoadedShadersDictionary.Count == 0)
+                LoadedShadersDictionary = Utils.LoadAssetBundle(path);
             StartCoroutine(DelayedInit());
         }
 
