@@ -24,6 +24,7 @@ namespace Singularity
         bool editing = false;
         string nodeText = "";
         private Vector2 scrollPosition = new Vector2();
+        string windowTitle;
 
         public SingularityUI()
         {
@@ -33,6 +34,9 @@ namespace Singularity
         public void Awake()
         {
             windowId = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            windowTitle = $"Singularity {version.Major}.{version.Minor}";
 
             // Wait for the main plugin to be initialized
             StartCoroutine(DelayedInit());
@@ -62,7 +66,7 @@ namespace Singularity
         {
             if (uiVisible)
             {
-                windowRect = GUILayout.Window(windowId, windowRect, DrawWindow, $"Singularity {Assembly.GetExecutingAssembly().GetName().Version.Major}.{Assembly.GetExecutingAssembly().GetName().Version.Minor}");
+                windowRect = GUILayout.Window(windowId, windowRect, DrawWindow, windowTitle);
 
                 //prevent window from going offscreen
                 windowRect.x = Mathf.Clamp(windowRect.x, 0, Screen.width - windowRect.width);
